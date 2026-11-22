@@ -2,6 +2,14 @@
 
 Newest entries first. Current state is in [`HANDOFF.md`](HANDOFF.md).
 
+## 2026-11-22 — owner's read of the prototype
+
+David: it feels like a basic Super Mario with a simple wall-dodging skill. Written
+into the handoff as the direction to improve, ordered by leverage: the dead world
+needs its own geometry, Shift needs a condition or a cost, three lines of story
+per room, then silhouette and only then textures. No mechanic rewrite before the
+jam deadline; publishing comes first.
+
 ## 2026-11-22 — sound, juice and a build for itch
 
 - `src/audio.ts`: Web Audio only, no files, so there is no licence to track. The

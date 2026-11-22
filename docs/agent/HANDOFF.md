@@ -64,12 +64,42 @@ Each level was started through the normal flow and read back between steps:
    create the itch.io project, upload `half-light-0.1.0.zip` from `npm run zip`,
    and paste the draft copy from [`docs/ITCH.md`](../ITCH.md). Submit early —
    itch allows edits until the deadline.
-2. **Juice, round two**: a soft vignette per state, a shift shockwave ring, the
-   door frame lighting up when every echo is in, a card that names the next room.
-3. **Optional content**: a fourth room. One was drafted and dropped: a salt
-   walkway needs salt to be standable, and salt is a hazard zone, not a tile the
-   living stand on. Making salt solid would break the curtains in the first three
-   rooms. A fourth room that repeats a wall is not worth the deadline risk.
+2. **After that, follow the direction section**: the dead world's own geometry
+   first, then a condition on Shift, then story, silhouette and art. That is what
+   makes it stop reading as a Mario level with a phase trick.
+3. **Cheap polish meanwhile**: a soft vignette per state, a shift ring, the door
+   frame lighting up when every echo is in, a card that names the next room.
+4. **Optional content**: a fourth room only if it adds a new reading of the rule.
+   One was drafted and dropped: a salt walkway needs salt to be standable, and salt
+   is a hazard zone, not a tile the living stand on. Making salt solid would break
+   the curtains in the first three rooms.
+
+## Direction after the first playable (owner, 2026-11-22)
+
+Owner's verdict: it reads as "a basic Super Mario with a simple wall-dodging
+skill". Fair, and the gap is not art first. Shift is a free toggle and the dead
+world is the same room with the collision layer switched off, so there is nothing
+to decide. Ranked by how much the feel changes per hour of work:
+
+1. **Give the dead world its own furniture.** Same room, but the dead see the
+   house as it was: scaffolds, rails and openings that exist only for them, and
+   walls that are solid in the living world but absent there. Shift then changes
+   *where you can go*, not just what you bump into.
+2. **Give Shift a condition.** Salt already burns the dead; make it a routing
+   constraint instead of a wall (a salt line you must be alive to cross, light
+   pools the dead cannot enter), or a half-light meter that only refills in
+   shadow. A free toggle has no decisions in it.
+3. **Three lines of story per room.** The echoes are memories of the same house
+   and the door wants them back. One line on the card before each room; costs
+   almost nothing and changes how the rooms read.
+4. **Silhouette before texture.** The living body and the dead vapour should
+   differ in shape and motion (breathing, weighted steps vs. drift), not only in
+   colour. A texture on a rectangle still reads as a rectangle.
+5. **Then art.** Per-room palettes, procedural grain or scanlines, parallax,
+   a title illustration. Cheap with primitives, worthless before 1 and 2.
+
+Deliberately not before 2026-12-01: rewriting the mechanic. The jam needs a
+submitted build more than a better prototype.
 
 ## Known rough edges
 
