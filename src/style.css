@@ -78,30 +78,6 @@ kbd {
   font-size: 0.68rem;
 }
 
-.banner {
-  position: fixed;
-  left: 50%;
-  top: 42%;
-  transform: translate(-50%, -50%);
-  padding: 1.4rem 2rem;
-  border: 1px solid #3b4a3f;
-  border-radius: 0.7rem;
-  background: rgb(8 12 10 / 92%);
-  color: #e9f5ea;
-  text-align: center;
-  font-size: 1rem;
-  line-height: 1.6;
-  box-shadow: 0 24px 80px rgb(0 0 0 / 70%);
-}
-
-.banner strong {
-  display: block;
-  margin-bottom: 0.4rem;
-  font-size: 1.5rem;
-  letter-spacing: 0.1em;
-  color: #b6f0c2;
-}
-
 .touch[hidden] {
   display: none;
 }

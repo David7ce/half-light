@@ -1,42 +1,26 @@
 /**
- * The level is ASCII so it can be edited without opening a map maker, and so a
- * diff of the map is readable in a pull request.
+ * Levels are ASCII so they can be edited without opening a map maker, and so a
+ * diff of a map is readable in a pull request.
  *
  * F  floor: solid for the living *and* the dead (the level's frame and ground)
  * #  wall: solid for the living, passed through by the dead
  * =  furniture: solid for the living, passed through by the dead
  * X  salt: harmless to the living, kills the dead
- * o  echo: one of the three things the door asks for
+ * o  echo: the door wants all of them
  * D  the door
  * S  where a death puts you back
  *
- * The rule the map teaches: the living walk on furniture but not through walls,
- * the dead walk through walls but not on furniture.
+ * The rule the maps teach: the living walk on furniture but not through walls,
+ * the dead walk through walls but not on furniture, and salt burns the dead.
  */
 export const TILE = 32;
 export const COLS = 32;
 export const ROWS = 18;
 
-export const LEVEL: readonly string[] = [
-  'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
-  'F..............................F',
-  'F..............................F',
-  'F..............................F',
-  'F..............................F',
-  'F..............................F',
-  'F..............................F',
-  'F..............................F',
-  'F..............................F',
-  'F................XXX....#####..F',
-  'F.....##.........XXX....#...#..F',
-  'F.....##.........XXX....#...#..F',
-  'F.....##....o....XXX....#.o.#..F',
-  'F.....##.........XXXo...#...#..F',
-  'F.S...##...====..XXX....#####.DF',
-  'FFFFFFFFFFFF...FFFFFFFFFFFFFFFFF',
-  'FFFFFFFFFFFF...FFFFFFFFFFFFFFFFF',
-  'FFFFFFFFFFFF...FFFFFFFFFFFFFFFFF',
-];
+export interface LevelDefinition {
+  name: string;
+  rows: readonly string[];
+}
 
 export type TileKind = 'floor' | 'wall' | 'furniture' | 'salt' | 'echo' | 'door' | 'spawn';
 
@@ -63,8 +47,84 @@ const KIND_BY_CHAR: Record<string, TileKind> = {
   S: 'spawn',
 };
 
+/**
+ * One screen per level. Every echo except the sealed one in The Hall sits at
+ * walking height on purpose: these are puzzle rewards, not platforming tests.
+ */
+export const LEVELS: readonly LevelDefinition[] = [
+  {
+    name: 'The Hall',
+    rows: [
+      'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F................XXX....#####..F',
+      'F.....##.........XXX....#...#..F',
+      'F.....##.........XXX....#...#..F',
+      'F.....##.........XXX....#.o.#..F',
+      'F.....##....o....XXX....#...#..F',
+      'F.S...##..=====..XXXo...#####.DF',
+      'FFFFFFFFFF.....FFFFFFFFFFFFFFFFF',
+      'FFFFFFFFFF.....FFFFFFFFFFFFFFFFF',
+      'FFFFFFFFFF.....FFFFFFFFFFFFFFFFF',
+    ],
+  },
+  {
+    name: 'The Kitchen',
+    rows: [
+      'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+      'F..............................F',
+      'F.......XXX....................F',
+      'F.......XXX....................F',
+      'F.......XXX....................F',
+      'F.......XXX....................F',
+      'F.......XXX....................F',
+      'F.S...o.XXX....................F',
+      'FFFFFFFFFFFFF======FFFFFFFFFFFFF',
+      'F..................##..........F',
+      'F..................##..........F',
+      'F..................##..........F',
+      'F..................##..........F',
+      'F..................##..........F',
+      'F..................##o.......D.F',
+      'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+      'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+      'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+    ],
+  },
+  {
+    name: 'The Cellar',
+    rows: [
+      'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..........#...................F',
+      'F..........#...................F',
+      'F..........#.........XX....##..F',
+      'F..........#.........XX....##..F',
+      'F..........#.........XX....##..F',
+      'F..........#.........XX....##..F',
+      'F..........#.........XX....##..F',
+      'F.S........#.....o...XX.o..##.DF',
+      'FFFFFFFFFF...FFFFFFFFFFFFFFFFFFF',
+      'FFFFFFFFFF...FFFFFFFFFFFFFFFFFFF',
+      'FFFFFFFFFF...FFFFFFFFFFFFFFFFFFF',
+    ],
+  },
+];
+
 /** Parse and validate; a map with a short row must fail loudly, not silently. */
-export function parseLevel(rows: readonly string[] = LEVEL): ParsedLevel {
+export function parseLevel(rows: readonly string[] = LEVELS[0].rows): ParsedLevel {
   if (rows.length !== ROWS) throw new Error(`level has ${rows.length} rows, expected ${ROWS}`);
 
   const tiles: Tile[] = [];

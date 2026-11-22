@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import './style.css';
 import { GameScene } from './scenes/GameScene';
+import { TitleScene } from './scenes/TitleScene';
 import { wireTouchPad } from './touch';
 
 const game = new Phaser.Game({
@@ -20,7 +21,7 @@ const game = new Phaser.Game({
       debug: false,
     },
   },
-  scene: [GameScene],
+  scene: [TitleScene, GameScene],
 });
 
 // Dev-only hook so a browser session (or a Playwright run) can read the scene

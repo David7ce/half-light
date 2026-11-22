@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLS, ROWS, TILE, centre, parseLevel, type TileKind } from '../level';
+import { LEVELS } from '../level';
 import { consumeJump, consumeShift, touch } from '../touch';
 
 type Mode = 'alive' | 'ghost';
@@ -65,7 +66,7 @@ export class GameScene extends Phaser.Scene {
   private furnitureTiles: Phaser.GameObjects.Rectangle[] = [];
   private saltZones: Phaser.GameObjects.Rectangle[] = [];
   private saltDecor: Phaser.GameObjects.Rectangle[] = [];
-  private echoes: Phaser.GameObjects.Arc[] = [];
+  private echoes: { zone: Phaser.GameObjects.Rectangle; orb: Phaser.GameObjects.Arc }[] = [];
   private door!: Phaser.GameObjects.Rectangle;
   private doorInner!: Phaser.GameObjects.Rectangle;
   private hud!: Phaser.GameObjects.Text;
@@ -79,15 +80,24 @@ export class GameScene extends Phaser.Scene {
   private dead = false;
   private won = false;
   private doorHintShown = false;
-  private banner = document.getElementById('banner')!;
+  private levelIndex = 0;
+  private levelName = '';
+  private totalEchoes = 3;
   private hint = document.getElementById('hint')!;
 
   constructor() {
     super('game');
   }
 
+  init(data: { level?: number } = {}): void {
+    this.levelIndex = data.level ?? 0;
+  }
+
   create(): void {
-    const level = parseLevel();
+    const definition = LEVELS[this.levelIndex];
+    const level = parseLevel(definition.rows);
+    this.levelName = definition.name;
+    this.totalEchoes = level.echoes.length;
     this.spawn.set(centre(level.spawn).x, level.spawn.y * TILE + TILE - 15);
     this.mode = 'alive';
     this.dead = false;
@@ -99,7 +109,6 @@ export class GameScene extends Phaser.Scene {
     this.saltZones = [];
     this.saltDecor = [];
     this.echoes = [];
-    this.banner.hidden = true;
     this.hint.hidden = false;
 
     this.buildTiles(level.tiles);
@@ -166,8 +175,12 @@ export class GameScene extends Phaser.Scene {
       const pos = centre(echo);
       const orb = this.add.circle(pos.x, pos.y, 9, 0xffffff);
       orb.setData('kind', 'echo');
-      this.physics.add.existing(orb, true);
-      this.echoes.push(orb);
+      // A 28px pickup zone around a 9px orb: the jump does not have to be
+      // pixel-perfect to count, which is what a puzzle should ask for, not a
+      // platforming test. The orb itself stays visual.
+      const zone = this.add.rectangle(pos.x, pos.y, 28, 28, 0xffffff, 0);
+      this.physics.add.existing(zone, true);
+      this.echoes.push({ zone, orb });
       this.tweens.add({
         targets: orb,
         alpha: { from: 1, to: 0.45 },
@@ -198,7 +211,9 @@ export class GameScene extends Phaser.Scene {
       if (this.mode === 'ghost' && !this.dead && !this.won) this.die();
     });
 
-    this.physics.add.overlap(this.player, this.echoes, (_player, orb) => this.collect(orb as Phaser.GameObjects.Arc));
+    this.physics.add.overlap(this.player, this.echoes.map((echo) => echo.zone), (_player, zone) =>
+      this.collect(zone as Phaser.GameObjects.Rectangle)
+    );
 
     this.physics.add.overlap(this.player, this.door, () => this.tryDoor());
   }
@@ -259,7 +274,7 @@ export class GameScene extends Phaser.Scene {
     for (const strand of this.saltDecor) strand.setFillStyle(palette.salt, ghost ? 0.9 : 0.75);
 
     this.player.setFillStyle(palette.player, ghost ? 0.78 : 1);
-    for (const orb of this.echoes) orb.setFillStyle(palette.echo);
+    for (const echo of this.echoes) echo.orb.setFillStyle(palette.echo);
     this.door.setFillStyle(this.echoes.length === 0 ? palette.doorOpen : palette.door);
     this.doorInner.setVisible(true);
 
@@ -289,11 +304,12 @@ export class GameScene extends Phaser.Scene {
     this.updateHud();
   }
 
-  private collect(orb: Phaser.GameObjects.Arc): void {
+  private collect(zone: Phaser.GameObjects.Rectangle): void {
     if (this.dead || this.won) return;
-    const index = this.echoes.indexOf(orb);
+    const index = this.echoes.findIndex((echo) => echo.zone === zone);
     if (index === -1) return;
-    this.echoes.splice(index, 1);
+    const [{ orb }] = this.echoes.splice(index, 1);
+    zone.destroy();
     this.tweens.killTweensOf(orb);
     this.tweens.add({
       targets: orb,
@@ -311,7 +327,7 @@ export class GameScene extends Phaser.Scene {
     if (this.echoes.length > 0) {
       if (!this.doorHintShown) {
         this.doorHintShown = true;
-        this.hudFlash('#ffd166', `The door wants all three echoes (${this.echoes.length} left).`);
+        this.hudFlash('#ffd166', `The door wants every echo (${this.echoes.length} left).`);
       }
       return;
     }
@@ -329,14 +345,49 @@ export class GameScene extends Phaser.Scene {
     this.won = true;
     this.body.setVelocity(0, 0);
     this.body.moves = false;
-    this.banner.innerHTML = '<strong>YOU CROSSED OVER</strong>Press R to walk it again.';
-    this.banner.hidden = false;
     this.hint.hidden = true;
     this.cameras.main.flash(400, 120, 220, 150);
+
+    const last = this.levelIndex === LEVELS.length - 1;
+    const title = last ? 'YOU CROSSED OVER' : 'LEVEL CLEARED';
+    const subtitle = last
+      ? 'Press Enter to walk it again from the hall.'
+      : `${this.levelName} is behind you. Press Enter for the next room.`;
+
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2 - 16, title, {
+        fontFamily: 'ui-monospace, Cascadia Mono, Consolas, monospace',
+        fontSize: '34px',
+        color: last ? '#b6f0c2' : '#e8e2d6',
+        align: 'center',
+      })
+      .setOrigin(0.5)
+      .setDepth(20);
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2 + 28, subtitle, {
+        fontFamily: 'ui-monospace, Cascadia Mono, Consolas, monospace',
+        fontSize: '15px',
+        color: '#9a9384',
+        align: 'center',
+      })
+      .setOrigin(0.5)
+      .setDepth(20);
+
+    this.input.keyboard?.once('keydown-ENTER', () => this.continueRun());
+    this.input.keyboard?.once('keydown-SPACE', () => this.continueRun());
+    this.input.once('pointerdown', () => this.continueRun());
+  }
+
+  private continueRun(): void {
+    if (this.levelIndex === LEVELS.length - 1) {
+      this.scene.start('title');
+      return;
+    }
+    this.scene.start('game', { level: this.levelIndex + 1 });
   }
 
   private restart(): void {
-    this.scene.restart();
+    this.scene.start('game', { level: this.levelIndex });
   }
 
   private die(): void {
@@ -369,7 +420,10 @@ export class GameScene extends Phaser.Scene {
   private updateHud(): void {
     const mode = this.mode === 'alive' ? 'LIVING' : 'DEAD';
     this.hud.setColor(this.mode === 'alive' ? '#e8b06a' : '#9fd8ff');
-    this.hud.setText(`ECHOES ${3 - this.echoes.length}/3   ·   ${mode}   ·   SHIFT crosses over`);
+    this.hud.setText(
+      `${this.levelIndex + 1}/${LEVELS.length} ${this.levelName}   ·   ECHOES ` +
+        `${this.totalEchoes - this.echoes.length}/${this.totalEchoes}   ·   ${mode}`
+    );
   }
 
   update(): void {

@@ -42,6 +42,8 @@ is drawn at runtime, so the repository is the whole game. Phaser is MIT; see
 
 ## Status
 
-Playable prototype: one level, all four rules above taught before the door. A
-full run has been verified end to end in a browser. What is still missing is in
-[docs/agent/HANDOFF.md](docs/agent/HANDOFF.md).
+Playable prototype: **three levels** (*The Hall*, *The Kitchen*, *The Cellar*),
+a title screen, and a win card that moves to the next room. Each level teaches
+the four rules above before it asks for them. All three have been played end to
+end in a browser, from the title screen back to the title. What is still missing
+is in [docs/agent/HANDOFF.md](docs/agent/HANDOFF.md).
