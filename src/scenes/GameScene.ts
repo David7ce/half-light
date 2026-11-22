@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLS, ROWS, TILE, centre, parseLevel, type TileKind } from '../level';
 import { LEVELS } from '../level';
 import { consumeJump, consumeShift, touch } from '../touch';
+import { playSfx, setAudioMode, startAudio, toggleMute } from '../audio';
 
 type Mode = 'alive' | 'ghost';
 
@@ -77,6 +78,7 @@ export class GameScene extends Phaser.Scene {
   private keys!: Record<'A' | 'D' | 'W', Phaser.Input.Keyboard.Key>;
   private shiftQueued = false;
   private jumpQueued = false;
+  private lastTrail = 0;
   private dead = false;
   private won = false;
   private doorHintShown = false;
@@ -110,6 +112,8 @@ export class GameScene extends Phaser.Scene {
     this.saltDecor = [];
     this.echoes = [];
     this.hint.hidden = false;
+    startAudio();
+    setAudioMode('alive');
 
     this.buildTiles(level.tiles);
     this.buildPieces(level);
@@ -240,6 +244,10 @@ export class GameScene extends Phaser.Scene {
       this.jumpQueued = true;
     });
     keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R).on('down', () => this.restart());
+    keyboard.on('keydown-M', () => {
+      const nowMuted = toggleMute();
+      this.hudFlash(nowMuted ? '#9a9384' : '#e8e2d6', nowMuted ? 'Sound off (M)' : 'Sound on (M)');
+    });
   }
 
   private buildHud(): void {
@@ -300,6 +308,9 @@ export class GameScene extends Phaser.Scene {
 
     this.mode = next;
     this.applyPalette();
+    setAudioMode(next);
+    playSfx('shift');
+    this.burst(this.player.x, this.player.y, PALETTE[next].player, 8);
     this.cameras.main.flash(110, next === 'ghost' ? 40 : 70, next === 'ghost' ? 90 : 40, next === 'ghost' ? 120 : 20);
     this.updateHud();
   }
@@ -319,6 +330,11 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => orb.destroy(),
     });
     this.door.setFillStyle(PALETTE[this.mode].doorOpen);
+    playSfx('echo');
+    this.burst(zone.x, zone.y, PALETTE[this.mode].echo, 10);
+    if (this.echoes.length === 0) {
+      this.tweens.add({ targets: this.door, scaleX: 1.18, scaleY: 1.08, duration: 220, yoyo: true, ease: 'Sine.Out' });
+    }
     this.updateHud();
   }
 
@@ -327,6 +343,7 @@ export class GameScene extends Phaser.Scene {
     if (this.echoes.length > 0) {
       if (!this.doorHintShown) {
         this.doorHintShown = true;
+        playSfx('deny');
         this.hudFlash('#ffd166', `The door wants every echo (${this.echoes.length} left).`);
       }
       return;
@@ -334,6 +351,7 @@ export class GameScene extends Phaser.Scene {
     if (this.mode === 'ghost') {
       if (!this.doorHintShown) {
         this.doorHintShown = true;
+        playSfx('deny');
         this.hudFlash('#9fd8ff', 'The dead cannot open it. Cross back.');
       }
       return;
@@ -346,7 +364,10 @@ export class GameScene extends Phaser.Scene {
     this.body.setVelocity(0, 0);
     this.body.moves = false;
     this.hint.hidden = true;
+    playSfx('win');
     this.cameras.main.flash(400, 120, 220, 150);
+    this.tweens.add({ targets: this.door, scaleY: 1.7, alpha: 0, duration: 420, ease: 'Cubic.Out' });
+    this.burst(this.door.x, this.door.y, PALETTE[this.mode].doorOpen, 14);
 
     const last = this.levelIndex === LEVELS.length - 1;
     const title = last ? 'YOU CROSSED OVER' : 'LEVEL CLEARED';
@@ -395,6 +416,8 @@ export class GameScene extends Phaser.Scene {
     this.dead = true;
     this.body.setVelocity(0, 0);
     this.body.moves = false;
+    playSfx('death');
+    this.burst(this.player.x, this.player.y, PALETTE[this.mode].player, 12);
     this.player.setVisible(false);
     this.cameras.main.flash(160, 120, 20, 20);
     this.time.delayedCall(260, () => {
@@ -406,9 +429,29 @@ export class GameScene extends Phaser.Scene {
       if (this.mode === 'ghost') {
         this.mode = 'alive';
         this.applyPalette();
+        setAudioMode('alive');
         this.updateHud();
       }
     });
+  }
+
+  /** A handful of squares thrown outwards; used for shift, echo, death and win. */
+  private burst(x: number, y: number, colour: number, count: number): void {
+    for (let i = 0; i < count; i += 1) {
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+      const distance = 16 + Math.random() * 26;
+      const dot = this.add.rectangle(x, y, 3 + Math.random() * 3, 3 + Math.random() * 3, colour, 0.9);
+      dot.setDepth(6);
+      this.tweens.add({
+        targets: dot,
+        x: x + Math.cos(angle) * distance,
+        y: y + Math.sin(angle) * distance,
+        alpha: 0,
+        duration: 300 + Math.random() * 220,
+        ease: 'Cubic.Out',
+        onComplete: () => dot.destroy(),
+      });
+    }
   }
 
   private hudFlash(colour: string, message: string): void {
@@ -429,8 +472,7 @@ export class GameScene extends Phaser.Scene {
   update(): void {
     if (this.won) return;
 
-    const left = this.cursors.left.isDown || this.keys.A.isDown || touch.left;
-    const right = this.cursors.right.isDown || this.keys.D.isDown || touch.right;
+    const left = this.cursors.left.isDown || this.keys.A.isDown || touch.left;    const right = this.cursors.right.isDown || this.keys.D.isDown || touch.right;
     const jump = this.jumpQueued || consumeJump();
     const shiftPressed = this.shiftQueued || consumeShift();
     this.jumpQueued = false;
@@ -438,6 +480,21 @@ export class GameScene extends Phaser.Scene {
 
     if (shiftPressed) this.shift();
     if (this.dead) return;
+
+    if (this.mode === 'ghost' && this.time.now > this.lastTrail + 90) {
+      this.lastTrail = this.time.now;
+      const trail = this.add.rectangle(this.player.x, this.player.y, 16, 24, PALETTE.ghost.player, 0.16);
+      trail.setDepth(4);
+      this.tweens.add({
+        targets: trail,
+        alpha: 0,
+        scaleX: 0.5,
+        scaleY: 0.5,
+        duration: 340,
+        ease: 'Cubic.Out',
+        onComplete: () => trail.destroy(),
+      });
+    }
 
     if (!this.body.moves) return;
     const speed = SPEED[this.mode];

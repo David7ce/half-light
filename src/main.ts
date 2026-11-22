@@ -28,6 +28,9 @@ const game = new Phaser.Game({
 // without guessing from pixels. It is stripped from the production bundle.
 if (import.meta.env.DEV) {
   (window as unknown as { __game: Phaser.Game }).__game = game;
+  void import('./audio').then(({ audioState }) => {
+    (window as unknown as { __audio: { state: typeof audioState } }).__audio = { state: audioState };
+  });
 }
 
 const pad = document.getElementById('touch');

@@ -31,14 +31,23 @@ the living, and only with all three echoes.
 ```sh
 npm ci
 npm run dev      # http://localhost:5173
-npm run build    # dist/, upload the zip of this folder to itch.io
+npm run build    # dist/
+npm run zip      # half-light-<version>.zip, index.html at the root, for itch.io
 ```
 
 ## Stack
 
 Phaser 3 + TypeScript + Vite. No image, audio or font assets: every visible thing
-is drawn at runtime, so the repository is the whole game. Phaser is MIT; see
-[LICENSE](LICENSE) for this project's licence.
+is drawn at runtime and every sound is synthesised with Web Audio, so the
+repository is the whole game. Phaser is MIT; see [LICENSE](LICENSE) for this
+project's licence.
+
+## Sound
+
+The ambient bed is two slow chords (a warm fifth for the living, a cold tritone
+for the dead) that cross-fade when you shift; the one-shots are built from
+oscillators and a noise buffer. `M` mutes. Nothing is loaded from disk, so there
+is no audio licence to track — only the code in `src/audio.ts`.
 
 ## Status
 

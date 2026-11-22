@@ -10,6 +10,8 @@ assets. Current state and the exact next step live in
 - `npm run dev` — Vite on `http://localhost:5173`.
 - `npm run build` — `tsc --noEmit` then `vite build`; this is the gate, keep it
   green.
+- `npm run zip` — the build plus `half-light-<version>.zip` with `index.html` at
+  the root, which is the file itch.io wants.
 - There is no test runner yet. A change to the mechanic is verified by playing
   the full run in a browser, and the handoff records what was checked.
 
@@ -20,6 +22,9 @@ assets. Current state and the exact next step live in
   which is on purpose.
 - Every visible thing is drawn with Phaser primitives. Do not add sprite sheets,
   fonts or audio without checking the licence and writing it down here.
+- Sound is synthesised in [`src/audio.ts`](src/audio.ts) with Web Audio: no files,
+  nothing to license, and it starts on the first gesture because browsers demand
+  one. If a file ever replaces a synth, record its licence here first.
 - Input is queued on the keydown event, not polled per frame: a tap shorter than a
   frame must still count. Movement is a held state; jump and shift are edges.
 - Two worlds share one body. Anything that changes collision must be listed in

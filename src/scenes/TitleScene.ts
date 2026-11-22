@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { startAudio } from '../audio';
 
 /**
  * Title and how-to-play, in Phaser rather than in the DOM so a scene change is
@@ -72,14 +73,17 @@ export class TitleScene extends Phaser.Scene {
     });
 
     this.add
-      .text(centre, height * 0.88, '← → move   ·   Space jump   ·   Shift cross over   ·   R restart', {
+      .text(centre, height * 0.88, '← → move   ·   Space jump   ·   Shift cross over   ·   R restart   ·   M mute', {
         fontFamily: 'ui-monospace, Cascadia Mono, Consolas, monospace',
         fontSize: '12px',
         color: '#5f6675',
       })
       .setOrigin(0.5);
 
-    const start = () => this.scene.start('game', { level: 0 });
+    const start = () => {
+      startAudio();
+      this.scene.start('game', { level: 0 });
+    };
     this.input.keyboard?.once('keydown-ENTER', start);
     this.input.keyboard?.once('keydown-SPACE', start);
     this.input.once('pointerdown', start);

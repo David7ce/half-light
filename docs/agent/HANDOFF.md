@@ -20,6 +20,15 @@ Updated: 2026-11-22. Game Off 2026 closes **2026-12-01 21:37 UTC** (13:37 PST).
   Then salt (alive), an echo, a wall (dead), the door (alive).
 - `npm run build` is green (tsc + vite). Bundle is a single ~1.2 MB chunk
   (Phaser); fine for an itch zip.
+- **`npm run zip`** writes `half-light-0.1.0.zip` (338 KB) with `index.html` at the
+  root; entries were listed to confirm it. Page copy for itch lives in
+  [`docs/ITCH.md`](../ITCH.md).
+- **Sound and juice.** `src/audio.ts` synthesises everything with Web Audio: an
+  ambient chord per state (warm fifth alive, cold tritone dead) that cross-fades
+  on shift, plus shift/echo/death/deny/win one-shots. `M` mutes. The scene also
+  throws a small particle burst on shift, echo, death and win, leaves a ghost
+  trail, and the door pulses when the last echo is taken and swings open on the
+  win.
 
 ## Verified on 2026-11-22 (browser, real key events)
 
@@ -43,20 +52,24 @@ Each level was started through the normal flow and read back between steps:
 - **Echoes use a 28px pickup zone around a 9px orb.** Without it, a jump had to be
   pixel-perfect and the salt echo was easy to miss; that was a real defect found
   by the scripted run, not a test artefact.
+- **Audio verified in the browser**: the context is `none` before the title's
+  gesture and `running` after Enter, `M` flips `muted` both ways, and The Hall was
+  replayed to `won: true` with sound on (three echoes, door opens).
+- **Shift/echo/death/win bursts and the ghost trail render** (screenshot evidence
+  in the workspace's `projects/logs/halflight-trail.png`).
 
 ## Next
 
-1. **Audio**: a short ambient loop and three one-shots (shift, echo, death).
-   Licence decision first — CC0 source or generated — written down in `AGENTS.md`.
-   Nothing paid or uncleared.
-2. **Juice**: shift particles, a trail for the dead, a door that animates open,
-   a card that says which level is next. All primitives, no assets.
-3. **A fourth level** built on the mid-air shift, and a "level select" so the jam
-   voters can reach the later rooms without replaying (or keep it linear; decide).
-4. **Publishing (owner only)**: create the public GitHub repository and push;
-   create the itch.io project, upload the zip of `dist/` with `index.html` at the
-   root, set the jam entry to Game Off 2026. Submit early — itch allows edits
-   until the deadline.
+1. **Publishing (owner only)**: create the public GitHub repository and push;
+   create the itch.io project, upload `half-light-0.1.0.zip` from `npm run zip`,
+   and paste the draft copy from [`docs/ITCH.md`](../ITCH.md). Submit early —
+   itch allows edits until the deadline.
+2. **Juice, round two**: a soft vignette per state, a shift shockwave ring, the
+   door frame lighting up when every echo is in, a card that names the next room.
+3. **Optional content**: a fourth room. One was drafted and dropped: a salt
+   walkway needs salt to be standable, and salt is a hazard zone, not a tile the
+   living stand on. Making salt solid would break the curtains in the first three
+   rooms. A fourth room that repeats a wall is not worth the deadline risk.
 
 ## Known rough edges
 
