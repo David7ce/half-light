@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Half-Light</title>
+    <meta
+      name="description"
+      content="Half-Light: shift between the living and the dead to cross a house that wants you to stay on one side."
+    />
+  </head>
+  <body>
+    <div id="game"></div>
+
+    <div class="hint" id="hint">
+      <p><strong>Half-Light</strong> — Game Off 2026 · theme <em>SHIFT</em></p>
+      <p>
+        <kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> walk ·
+        <kbd>Space</kbd> jump · <kbd>Shift</kbd> cross over · <kbd>R</kbd> restart
+      </p>
+      <p class="hint__rule">
+        The living walk on furniture but not through walls. The dead walk through walls
+        but not on furniture, and salt burns them.
+      </p>
+    </div>
+
+    <div class="touch" id="touch" hidden>
+      <div class="touch__move">
+        <button type="button" data-touch="left" aria-label="Walk left">◀</button>
+        <button type="button" data-touch="right" aria-label="Walk right">▶</button>
+      </div>
+      <div class="touch__act">
+        <button type="button" data-touch="jump" aria-label="Jump">JUMP</button>
+        <button type="button" data-touch="shift" aria-label="Cross over">SHIFT</button>
+      </div>
+    </div>
+
+    <div class="banner" id="banner" hidden></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
