@@ -14,6 +14,8 @@ interface Palette {
   wallTop: number;
   furniture: number;
   furnitureTop: number;
+  ghost: number;
+  ghostTop: number;
   salt: number;
   player: number;
   echo: number;
@@ -30,6 +32,8 @@ const PALETTE: Record<Mode, Palette> = {
     wallTop: 0x645541,
     furniture: 0x6a4a2e,
     furnitureTop: 0x8f6639,
+    ghost: 0x6a5f9e,
+    ghostTop: 0x8a7fc4,
     salt: 0xefe9dc,
     player: 0xe8b06a,
     echo: 0xffd166,
@@ -44,6 +48,8 @@ const PALETTE: Record<Mode, Palette> = {
     wallTop: 0x3f7ea3,
     furniture: 0x244a63,
     furnitureTop: 0x356f8f,
+    ghost: 0x9b8cff,
+    ghostTop: 0xc2b8ff,
     salt: 0xbfe9ff,
     player: 0x9fd8ff,
     echo: 0x8ef2c0,
@@ -53,9 +59,11 @@ const PALETTE: Record<Mode, Palette> = {
 };
 
 const GHOST_ALPHA = 0.34;
+/** Coasting: the dead keep their speed for about three quarters of a second. */
+const GHOST_DRAG = 300;
 const WORLD_W = COLS * TILE;
 const WORLD_H = ROWS * TILE;
-const SPEED = { alive: 210, ghost: 160 };
+const SPEED = { alive: 210, ghost: 220 };
 const JUMP = { alive: -520, ghost: -430 };
 
 export class GameScene extends Phaser.Scene {
@@ -65,8 +73,11 @@ export class GameScene extends Phaser.Scene {
   private floorTiles: Phaser.GameObjects.Rectangle[] = [];
   private wallTiles: Phaser.GameObjects.Rectangle[] = [];
   private furnitureTiles: Phaser.GameObjects.Rectangle[] = [];
-  private saltZones: Phaser.GameObjects.Rectangle[] = [];
+  private ghostTiles: Phaser.GameObjects.Rectangle[] = [];
+  private saltTiles = new Set<string>();
   private saltDecor: Phaser.GameObjects.Rectangle[] = [];
+  /** Wall and furniture tiles by "x,y": living matter blocks materialising. */
+  private livingSolid = new Set<string>();
   private echoes: { zone: Phaser.GameObjects.Rectangle; orb: Phaser.GameObjects.Arc }[] = [];
   private door!: Phaser.GameObjects.Rectangle;
   private doorInner!: Phaser.GameObjects.Rectangle;
@@ -74,6 +85,7 @@ export class GameScene extends Phaser.Scene {
   private spawn = new Phaser.Math.Vector2();
   private wallCollider!: Phaser.Physics.Arcade.Collider;
   private furnitureCollider!: Phaser.Physics.Arcade.Collider;
+  private ghostCollider!: Phaser.Physics.Arcade.Collider;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<'A' | 'D' | 'W', Phaser.Input.Keyboard.Key>;
   private shiftQueued = false;
@@ -108,8 +120,10 @@ export class GameScene extends Phaser.Scene {
     this.floorTiles = [];
     this.wallTiles = [];
     this.furnitureTiles = [];
-    this.saltZones = [];
+    this.ghostTiles = [];
+    this.saltTiles = new Set();
     this.saltDecor = [];
+    this.livingSolid = new Set();
     this.echoes = [];
     this.hint.hidden = false;
     startAudio();
@@ -129,7 +143,12 @@ export class GameScene extends Phaser.Scene {
   private buildTiles(tiles: { kind: TileKind; x: number; y: number }[]): void {
     const solid = new Set<string>();
     for (const tile of tiles) {
-      if (tile.kind === 'floor' || tile.kind === 'wall' || tile.kind === 'furniture') {
+      if (
+        tile.kind === 'floor' ||
+        tile.kind === 'wall' ||
+        tile.kind === 'furniture' ||
+        tile.kind === 'ghost'
+      ) {
         solid.add(`${tile.x},${tile.y}`);
       }
     }
@@ -139,9 +158,9 @@ export class GameScene extends Phaser.Scene {
       const y = tile.y * TILE + TILE / 2;
 
       if (tile.kind === 'salt') {
-        const zone = this.add.rectangle(x, y, TILE, TILE, 0xffffff, 0);
-        this.physics.add.existing(zone, true);
-        this.saltZones.push(zone);
+        // Salt is decided by the player's centre, like materialising: brushing
+        // the edge of a curtain is not the same as walking into it.
+        this.saltTiles.add(`${tile.x},${tile.y}`);
         const strand = this.add.rectangle(x + (tile.x % 2 === 0 ? -8 : 8), y, 3, TILE, 0xffffff);
         strand.setData('kind', 'salt');
         this.saltDecor.push(strand);
@@ -153,16 +172,20 @@ export class GameScene extends Phaser.Scene {
       rect.setData('tx', tile.x);
       rect.setData('ty', tile.y);
       this.physics.add.existing(rect, true);
+      if (tile.kind === 'wall' || tile.kind === 'furniture') {
+        this.livingSolid.add(`${tile.x},${tile.y}`);
+      }
 
       if (tile.kind === 'floor') this.floorTiles.push(rect);
       if (tile.kind === 'wall') this.wallTiles.push(rect);
       if (tile.kind === 'furniture') this.furnitureTiles.push(rect);
+      if (tile.kind === 'ghost') this.ghostTiles.push(rect);
 
       // A lighter lip on every surface you can stand on: without it the
       // monochrome tiles read as one slab at a glance.
       if (!solid.has(`${tile.x},${tile.y - 1}`)) {
         const lip = this.add.rectangle(x, y - TILE / 2 + 2, TILE, 4, 0xffffff);
-        lip.setData('kind', tile.kind === 'wall' ? 'wallTop' : 'floorTop');
+        lip.setData('kind', tile.kind === 'wall' ? 'wallTop' : tile.kind === 'ghost' ? 'ghostTop' : 'floorTop');
         lip.setData('lip', true);
       }
     }
@@ -210,10 +233,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.floorTiles);
     this.wallCollider = this.physics.add.collider(this.player, this.wallTiles);
     this.furnitureCollider = this.physics.add.collider(this.player, this.furnitureTiles);
-
-    this.physics.add.overlap(this.player, this.saltZones, () => {
-      if (this.mode === 'ghost' && !this.dead && !this.won) this.die();
-    });
+    this.ghostCollider = this.physics.add.collider(this.player, this.ghostTiles);
 
     this.physics.add.overlap(this.player, this.echoes.map((echo) => echo.zone), (_player, zone) =>
       this.collect(zone as Phaser.GameObjects.Rectangle)
@@ -272,11 +292,13 @@ export class GameScene extends Phaser.Scene {
     for (const tile of this.floorTiles) paint(tile, palette.floor);
     for (const tile of this.wallTiles) paint(tile, palette.wall, ghost ? GHOST_ALPHA : 1);
     for (const tile of this.furnitureTiles) paint(tile, palette.furniture, ghost ? GHOST_ALPHA * 0.8 : 1);
+    // Dead matter: barely there for the living, solid for the dead.
+    for (const tile of this.ghostTiles) paint(tile, palette.ghost, ghost ? 1 : 0.18);
 
     this.children.list.forEach((child) => {
       const rect = child as Phaser.GameObjects.Rectangle;
       if (rect.getData?.('lip') !== true) return;
-      paint(rect, rect.getData('kind') === 'wallTop' ? palette.wallTop : palette.floorTop, ghost ? GHOST_ALPHA : 1);
+      paint(rect, rect.getData('kind') === 'wallTop' ? palette.wallTop : rect.getData('kind') === 'ghostTop' ? palette.ghostTop : palette.floorTop, ghost ? GHOST_ALPHA : 1);
     });
 
     for (const strand of this.saltDecor) strand.setFillStyle(palette.salt, ghost ? 0.9 : 0.75);
@@ -289,6 +311,7 @@ export class GameScene extends Phaser.Scene {
     this.body.setAllowGravity(true);
     this.wallCollider.active = !ghost;
     this.furnitureCollider.active = !ghost;
+    this.ghostCollider.active = ghost;
   }
 
   private shift(): void {
@@ -296,10 +319,12 @@ export class GameScene extends Phaser.Scene {
     const next: Mode = this.mode === 'alive' ? 'ghost' : 'alive';
 
     if (next === 'alive') {
-      const inside =
-        this.physics.overlap(this.player, this.wallTiles) ||
-        this.physics.overlap(this.player, this.furnitureTiles);
-      if (inside) {
+      // Only the player's centre decides whether they materialise inside
+      // living matter: testing the whole body refused a shift whenever an
+      // elbow brushed the next tile over, which read as a broken key.
+      const tx = Math.floor(this.player.x / TILE);
+      const ty = Math.floor(this.player.y / TILE);
+      if (this.livingSolid.has(`${tx},${ty}`)) {
         this.cameras.main.shake(120, 0.006);
         this.hudFlash('#ff9a8a', 'Not here: you would materialise inside stone.');
         return;
@@ -498,12 +523,30 @@ export class GameScene extends Phaser.Scene {
 
     if (!this.body.moves) return;
     const speed = SPEED[this.mode];
-    if (left && !right) this.body.setVelocityX(-speed);
-    else if (right && !left) this.body.setVelocityX(speed);
+    if (this.mode === 'alive') {
+      // The living stop dead: their control is precise, which is what makes
+      // crossing back a brake and not just a collision change.
+      this.body.setDragX(0);
+      if (left && !right) this.body.setVelocityX(-speed);
+      else if (right && !left) this.body.setVelocityX(speed);
+      else this.body.setVelocityX(0);
+    } else {
+      // The dead do not brake. Let go and they coast; steer with the opposite
+      // key or cross back to stop.
+      this.body.setDragX(GHOST_DRAG);
+      if (left && !right) this.body.setVelocityX(-speed);
+      else if (right && !left) this.body.setVelocityX(speed);
+    }
 
     const onFloor = this.body.blocked.down || this.body.touching.down;
     if (jump && onFloor) this.body.setVelocityY(JUMP[this.mode]);
 
     if (this.player.y > WORLD_H + 48) this.die();
+    if (
+      this.mode === 'ghost' &&
+      this.saltTiles.has(`${Math.floor(this.player.x / TILE)},${Math.floor(this.player.y / TILE)}`)
+    ) {
+      this.die();
+    }
   }
 }

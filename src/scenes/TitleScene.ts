@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { startAudio } from '../audio';
+import { LEVELS } from '../level';
 
 /**
  * Title and how-to-play, in Phaser rather than in the DOM so a scene change is
@@ -43,8 +44,8 @@ export class TitleScene extends Phaser.Scene {
         height * 0.47,
         'One person, two states.\n\n' +
           'The living walk on furniture but not through walls.\n' +
-          'The dead walk through walls but not on furniture,\n' +
-          'and salt burns them.',
+          'The dead walk through walls, coast, and stand on scaffolds.\n' +
+          'Salt burns the dead.',
         {
           fontFamily: 'ui-monospace, Cascadia Mono, Consolas, monospace',
           fontSize: '16px',
@@ -87,5 +88,23 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard?.once('keydown-ENTER', start);
     this.input.keyboard?.once('keydown-SPACE', start);
     this.input.once('pointerdown', start);
+
+    // Dev only: jump straight to a room while designing it. Stripped from the
+    // production bundle, so the jam build cannot skip a level.
+    if (import.meta.env.DEV) {
+      this.add
+        .text(centre, height * 0.94, `dev: ${LEVELS.map((_, i) => i + 1).join(' ')} jumps to that room`, {
+          fontFamily: 'ui-monospace, Cascadia Mono, Consolas, monospace',
+          fontSize: '11px',
+          color: '#3c4350',
+        })
+        .setOrigin(0.5);
+      LEVELS.forEach((_, index) => {
+        this.input.keyboard?.on(`keydown-${['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'][index]}`, () => {
+          startAudio();
+          this.scene.start('game', { level: index });
+        });
+      });
+    }
   }
 }

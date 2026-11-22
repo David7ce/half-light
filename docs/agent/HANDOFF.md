@@ -6,18 +6,24 @@ Updated: 2026-11-22. Game Off 2026 closes **2026-12-01 21:37 UTC** (13:37 PST).
 
 - Playable prototype in `D:\Workspaces\David7ce-user\game-off-2026` (local git,
   no remote yet). Phaser 3.90 + TypeScript + Vite, no binary assets.
-- **Title screen** (`TitleScene`) with the rule in three lines, then **three levels**
+- **Title screen** (`TitleScene`) with the rule in three lines, then **four levels**
   (`src/level.ts`), then a win card per level and a final card that returns to the
-  title. `R` restarts the current level.
-- Level 1 *The Hall*: wall (dead only), furniture bridge over a 5-tile pit (living
-  only), salt curtain (burns the dead), sealed box with the last echo (dead only),
-  and a door that only the living open.
+  title. `R` restarts the current level. In dev only, keys 1-4 on the title jump
+  straight to a room (stripped from the build).
+- Level 1 *The Hall*: wall (dead only), furniture bridge over a five-tile pit
+  (living only), salt curtain (burns the dead), sealed box with the last echo (dead
+  only), and a door that only the living open.
 - Level 2 *The Kitchen*: two floors. Salt upstairs, so the dead cannot pass; a
   furniture stretch in the floor that only the dead fall through; a wall in the
   lower room only the dead pass; the door downstairs.
 - Level 3 *The Cellar*: a pillar standing in a pit. The living cannot jump it and
   the dead cannot clear it on their own, so the jump has to change state mid-air.
   Then salt (alive), an echo, a wall (dead), the door (alive).
+- Level 4 *The Scaffold*: dead matter. A pit the living cannot cross, bridged by
+  scaffolds only the dead stand on (visible to the living as faint outlines). Then
+  back to the living before the salt.
+- **Movement is a rule too.** The living brake instantly; the dead coast and cannot
+  stop, so Shift doubles as the brake. The dead are slightly faster (220 vs 210).
 - `npm run build` is green (tsc + vite). Bundle is a single ~1.2 MB chunk
   (Phaser); fine for an itch zip.
 - **`npm run zip`** writes `half-light-0.1.0.zip` (338 KB) with `index.html` at the
@@ -43,12 +49,14 @@ Each level was started through the normal flow and read back between steps:
   living; the door opens. The level transition came from pressing Enter on The
   Hall's card.
 - **The Cellar**: jump from the ledge, shift to dead mid-air, land past the pillar
-  (`x=515`); echo 1; shift back to living before the salt; echo 2; shift → dead
-  past the wall; shift → living; door opens. Enter on the last card returned to
-  the title (`active: ["title"]`).
-- Negative checks from the first level: the dead die in the pit and on salt and
-  respawn alive at the spawn; shift is refused while overlapping furniture; the
-  door refuses the dead and refuses an unfinished run.
+  (`x=558`); echo 1; shift back to living before the salt; echo 2; shift → dead
+  past the wall; shift → living; door opens.
+- **The Scaffold**: shift at the pit edge, jump onto the first scaffold (echo 1),
+  step up to the second, drop to the far ground, shift to living in mid-air to
+  brake before the salt, cross it (echo 2), door opens (`won: true` at `x=954`).
+- Negative checks: the dead die in the pit and on salt and respawn alive at the
+  spawn; the door refuses the dead and refuses an unfinished run; the living fall
+  straight through a scaffold.
 - **Echoes use a 28px pickup zone around a 9px orb.** Without it, a jump had to be
   pixel-perfect and the salt echo was easy to miss; that was a real defect found
   by the scripted run, not a test artefact.
@@ -56,7 +64,18 @@ Each level was started through the normal flow and read back between steps:
   gesture and `running` after Enter, `M` flips `muted` both ways, and The Hall was
   replayed to `won: true` with sound on (three echoes, door opens).
 - **Shift/echo/death/win bursts and the ghost trail render** (screenshot evidence
-  in the workspace's `projects/logs/halflight-trail.png`).
+  in the workspace's `projects/logs/halflight-trail.png`, and the scaffold in both
+  states in `halflight-scaffold-alive.png` / `-dead.png`).
+
+### Two real defects found while verifying the drift
+
+- **The player never stopped.** With no key held the body kept its velocity, so
+  letting go at a ledge slid the player into the pit. The living now brake the
+  frame the key is released; the dead keep coasting *on purpose*.
+- **Shift was refused when merely touching furniture.** The check tested the whole
+  body against wall/furniture colliders, so standing at the bridge edge refused to
+  materialise ("inside stone"). It now tests the tile under the player's centre,
+  and salt uses the same centre rule, so brushing a curtain no longer burns you.
 
 ## Next
 
@@ -64,15 +83,13 @@ Each level was started through the normal flow and read back between steps:
    create the itch.io project, upload `half-light-0.1.0.zip` from `npm run zip`,
    and paste the draft copy from [`docs/ITCH.md`](../ITCH.md). Submit early —
    itch allows edits until the deadline.
-2. **After that, follow the direction section**: the dead world's own geometry
-   first, then a condition on Shift, then story, silhouette and art. That is what
-   makes it stop reading as a Mario level with a phase trick.
-3. **Cheap polish meanwhile**: a soft vignette per state, a shift ring, the door
+2. **Balance the drift** with a real player on a keyboard: ghost 220 and a
+   three-quarter-second coast is a guess, and The Scaffold is the room that will
+   tell. The number is `GHOST_DRAG` in `GameScene.ts`.
+3. **Direction, rounds 2-5**: Shift needs a condition or a cost, then story,
+   silhouette and art.
+4. **Cheap polish meanwhile**: a soft vignette per state, a shift ring, the door
    frame lighting up when every echo is in, a card that names the next room.
-4. **Optional content**: a fourth room only if it adds a new reading of the rule.
-   One was drafted and dropped: a salt walkway needs salt to be standable, and salt
-   is a hazard zone, not a tile the living stand on. Making salt solid would break
-   the curtains in the first three rooms.
 
 ## Direction after the first playable (owner, 2026-11-22)
 
@@ -80,6 +97,9 @@ Owner's verdict: it reads as "a basic Super Mario with a simple wall-dodging
 skill". Fair, and the gap is not art first. Shift is a free toggle and the dead
 world is the same room with the collision layer switched off, so there is nothing
 to decide. Ranked by how much the feel changes per hour of work:
+
+**1 is in as of this commit**: scaffolds give the dead their own geometry, and the
+dead now coast while the living brake, so Shift is also the brake. 2-5 remain.
 
 1. **Give the dead world its own furniture.** Same room, but the dead see the
    house as it was: scaffolds, rails and openings that exist only for them, and

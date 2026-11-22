@@ -5,13 +5,15 @@
  * F  floor: solid for the living *and* the dead (the level's frame and ground)
  * #  wall: solid for the living, passed through by the dead
  * =  furniture: solid for the living, passed through by the dead
+ * g  scaffold: solid for the dead, passed through by the living (they see it faint)
  * X  salt: harmless to the living, kills the dead
  * o  echo: the door wants all of them
  * D  the door
  * S  where a death puts you back
  *
- * The rule the maps teach: the living walk on furniture but not through walls,
- * the dead walk through walls but not on furniture, and salt burns the dead.
+ * The rule the maps teach: living matter (walls, furniture) holds the living and
+ * not the dead; dead matter (scaffolds) holds the dead and not the living; the
+ * floor is the one thing both stand on, and salt burns the dead.
  */
 export const TILE = 32;
 export const COLS = 32;
@@ -22,7 +24,7 @@ export interface LevelDefinition {
   rows: readonly string[];
 }
 
-export type TileKind = 'floor' | 'wall' | 'furniture' | 'salt' | 'echo' | 'door' | 'spawn';
+export type TileKind = 'floor' | 'wall' | 'furniture' | 'ghost' | 'salt' | 'echo' | 'door' | 'spawn';
 
 export interface Tile {
   kind: TileKind;
@@ -41,6 +43,7 @@ const KIND_BY_CHAR: Record<string, TileKind> = {
   F: 'floor',
   '#': 'wall',
   '=': 'furniture',
+  g: 'ghost',
   X: 'salt',
   o: 'echo',
   D: 'door',
@@ -119,6 +122,29 @@ export const LEVELS: readonly LevelDefinition[] = [
       'FFFFFFFFFF...FFFFFFFFFFFFFFFFFFF',
       'FFFFFFFFFF...FFFFFFFFFFFFFFFFFFF',
       'FFFFFFFFFF...FFFFFFFFFFFFFFFFFFF',
+    ],
+  },
+  {
+    name: 'The Scaffold',
+    rows: [
+      'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F..............................F',
+      'F....................XX........F',
+      'F....................XX........F',
+      'F....................XX........F',
+      'F.........o..ggg.....XX........F',
+      'F........gggg........XX........F',
+      'F.S..................XX.o.....DF',
+      'FFFFFFFFF.......FFFFFFFFFFFFFFFF',
+      'FFFFFFFFF.......FFFFFFFFFFFFFFFF',
+      'FFFFFFFFF.......FFFFFFFFFFFFFFFF',
     ],
   },
 ];

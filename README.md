@@ -20,11 +20,16 @@ On a phone the buttons appear on screen: left, right, jump and shift.
 | --- | --- | --- |
 | Walls (`#`) | solid | pass through |
 | Furniture (`=`) | solid, walk on it | pass through, fall |
+| Scaffold (`g`) | pass through (you see the outline) | solid, walk on it |
 | Floor (`F`) | solid | solid |
 | Salt (`X`) | harmless | burns you |
 
 You cannot materialise inside a wall or inside furniture. The door only opens for
-the living, and only with all three echoes.
+the living, and only with all the echoes.
+
+**Movement is part of the rule.** The living stop the instant you let go. The dead
+do not brake: they coast, and the only way to stop is to cross back. Quick shifts
+are the skill; Shift is a brake as much as it is a key.
 
 ## Run it
 
@@ -51,8 +56,8 @@ is no audio licence to track — only the code in `src/audio.ts`.
 
 ## Status
 
-Playable prototype: **three levels** (*The Hall*, *The Kitchen*, *The Cellar*),
-a title screen, and a win card that moves to the next room. Each level teaches
-the four rules above before it asks for them. All three have been played end to
-end in a browser, from the title screen back to the title. What is still missing
-is in [docs/agent/HANDOFF.md](docs/agent/HANDOFF.md).
+Playable prototype: **four levels** (*The Hall*, *The Kitchen*, *The Cellar*, *The
+Scaffold*), a title screen, and a win card that moves to the next room. Each level
+teaches the rules above before it asks for them. All four have been played end to
+end in a browser, from the title screen back to the title. What is still missing is
+in [docs/agent/HANDOFF.md](docs/agent/HANDOFF.md).

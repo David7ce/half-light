@@ -2,6 +2,27 @@
 
 Newest entries first. Current state is in [`HANDOFF.md`](HANDOFF.md).
 
+## 2026-11-22 — dead matter and a drift you cannot brake
+
+- The owner's read was "basic Mario with a wall trick", so the first item of the
+  direction list is in: **scaffolds** (`g`), tiles that are solid for the dead and
+  pass-through for the living, drawn as a faint outline while alive. The dead now
+  has its own ground, and a new room (*The Scaffold*) is built on it.
+- **Movement is part of the rule now.** The owner's idea: a ghost should not brake.
+  The living stop the instant you let go; the dead coast (drag 300) and are slightly
+  faster (220 vs 210). Crossing back is the brake, so quick shifts are the skill.
+- Fixed a real bug found while testing: the body kept its velocity when no key was
+  held, so every ledge slid you into the pit.
+- Fixed a second one: Shift was refused when the body merely touched a wall or
+  furniture tile, which made the bridge edge feel broken. Materialising is now
+  decided by the tile under the player's centre.
+- Salt moved to the same centre rule, so grazing a curtain no longer kills you.
+- Added a dev-only level jump (keys 1-4 on the title) to make testing a room one
+  keypress; it is stripped from the production bundle.
+- Re-verified all four rooms to `won: true` with real key events under the new
+  movement, including the mid-air shift in The Cellar and the drift-to-salt in The
+  Scaffold.
+
 ## 2026-11-22 — owner's read of the prototype
 
 David: it feels like a basic Super Mario with a simple wall-dodging skill. Written
