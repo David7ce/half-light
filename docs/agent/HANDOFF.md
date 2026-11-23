@@ -1,6 +1,6 @@
 # Handoff — Half-Light
 
-Updated: 2026-11-22. Game Off 2026 closes **2026-12-01 21:37 UTC** (13:37 PST).
+Updated: 2026-11-23. Game Off 2026 closes **2026-12-01 21:37 UTC** (13:37 PST).
 
 ## State
 
@@ -76,6 +76,19 @@ Each level was started through the normal flow and read back between steps:
   body against wall/furniture colliders, so standing at the bridge edge refused to
   materialise ("inside stone"). It now tests the tile under the player's centre,
   and salt uses the same centre rule, so brushing a curtain no longer burns you.
+
+## Verified 2026-11-23 (production bundle, served over HTTP)
+
+- `npm run zip` green again; the bundle hash is unchanged (`index-CDerhVOH.js`),
+  so the 2026-11-22 zip already matched `9f161a6`. The copy and the page head
+  changed today, nothing in `src/`.
+- Served `dist/` over HTTP (itch serves it too; `file://` blocks module scripts)
+  and played it: title → Enter → *The Hall* `1/4 · ECHOES 0/3 · LIVING` → Shift →
+  DEAD → `R` → back to `1/4 · 0/3 · LIVING`. Arrow keys move. Zero console errors.
+- The only error before the fix was `favicon.ico` 404; an inline SVG favicon in
+  `index.html` removes it. `docs/ITCH.md` said "three rooms" and listed five
+  screenshots: corrected to four rooms and six screenshots. README gained `M`.
+- Current artifact: `half-light-0.1.0.zip`, 331 KB, `index.html` at the root.
 
 ## Next
 

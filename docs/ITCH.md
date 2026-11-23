@@ -26,11 +26,11 @@ You are one person with two states. Press Shift and you cross over:
 - **The dead** walk through walls, but they fall through furniture — and salt
   burns them.
 
-Every room is built so that neither state gets through alone. Three rooms, one
+Every room is built so that neither state gets through alone. Four rooms, one
 rule, and a door that only opens for the living, with every echo in hand.
 
 The game is short on purpose: one mechanic, learned in the first room and asked
-for by the third.
+for by the last.
 
 ## Controls
 
@@ -68,3 +68,4 @@ laws of the house apply to you.
 3. The Hall, dead (walls faded, trail behind the player).
 4. The Kitchen.
 5. The Cellar, mid-leap.
+6. The Scaffold, dead (faint outlines of the scaffolds).

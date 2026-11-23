@@ -2,6 +2,26 @@
 
 Newest entries first. Current state is in [`HANDOFF.md`](HANDOFF.md).
 
+## 2026-11-23 — delivery check on the production bundle
+
+- Ran `npm run zip` fresh: `tsc` + `vite` green, bundle still
+  `index-CDerhVOH.js`, so the zip the owner had (2026-11-22 18:11) already
+  matched the code at `9f161a6`; only the page head changed today.
+- Served `dist/` over HTTP (as itch does, not `file://`, where module scripts are
+  blocked) and played it in a real browser: title renders, Enter starts *The
+  Hall* at `1/4 · ECHOES 0/3 · LIVING`, Shift flips the palette and the state to
+  DEAD, `R` returns to `1/4 · 0/3 · LIVING`, arrow keys move. One console error,
+  the `favicon.ico` 404.
+- **Fixed the 404** with an inline SVG favicon (a half-filled circle) in
+  `index.html`, so the page ships no extra file and no request.
+- **Fixed the itch copy:** `docs/ITCH.md` still said "three rooms" and its
+  screenshot list stopped at The Cellar, while the game has four rooms. Now
+  "four rooms", "asked for by the last", and a sixth screenshot for The Scaffold.
+- Added the missing `M` mute to the README's control list.
+- Re-zipped: `half-light-0.1.0.zip`, 331 KB, `index.html` at the root plus
+  `assets/`. Zero console errors after the favicon fix. No `.playwright-mcp` or
+  screenshots left behind.
+
 ## 2026-11-22 — dead matter and a drift you cannot brake
 
 - The owner's read was "basic Mario with a wall trick", so the first item of the

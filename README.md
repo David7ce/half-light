@@ -11,6 +11,7 @@ gets through it alone.
 - `Space`, `↑` or `W` — jump
 - `Shift` — cross over (living ↔ dead)
 - `R` — restart
+- `M` — mute
 
 On a phone the buttons appear on screen: left, right, jump and shift.
 
