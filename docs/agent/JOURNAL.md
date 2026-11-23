@@ -2,6 +2,25 @@
 
 Newest entries first. Current state is in [`HANDOFF.md`](HANDOFF.md).
 
+## 2026-11-23 — polish: story cards, vignette, ring, lit door (0.2.0)
+
+- Story: `LevelDefinition.line`, one per room, shown on the card before it, plus a
+  closing line on the last card. The card now also names the next room.
+- The card needed a panel: over a live room the salt curtain crossed the story line.
+- Vignette per state as a radial gradient in a runtime canvas texture (no file).
+  The first attempt stacked stroked rectangles and drew a visible frame.
+- Shift ring, and a door frame that stays dull until every echo is home, then
+  breathes.
+- Played it, not just built it: `window.__game` is exposed in dev, so the run was
+  driven on real scene state. The Hall went end to end (`won: true`), and The
+  Scaffold too, which is the only way to see the last card. `Enter` on the last
+  card returns to the title; the dev keys start a room from the title. Zero console
+  errors.
+- Bundle has the new strings, and the dev key line is absent from the production
+  build. `npm run zip` wrote `half-light-0.2.0.zip` (331 KB). The six itch
+  screenshots were re-shot at 1024×576 with the new look.
+- Version 0.2.0. Mechanic, maps and the collision table untouched.
+
 ## 2026-11-23 — delivery check on the production bundle
 
 - Ran `npm run zip` fresh: `tsc` + `vite` green, bundle still

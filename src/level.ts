@@ -21,8 +21,13 @@ export const ROWS = 18;
 
 export interface LevelDefinition {
   name: string;
+  /** One line of the house's memory, shown on the card before the room. */
+  line: string;
   rows: readonly string[];
 }
+
+/** The card after the last room; the echoes were the house remembering itself. */
+export const CLOSING_LINE = 'The echoes were the house remembering itself. It has them back.';
 
 export type TileKind = 'floor' | 'wall' | 'furniture' | 'ghost' | 'salt' | 'echo' | 'door' | 'spawn';
 
@@ -57,6 +62,7 @@ const KIND_BY_CHAR: Record<string, TileKind> = {
 export const LEVELS: readonly LevelDefinition[] = [
   {
     name: 'The Hall',
+    line: 'The hall still smells of everyone who passed through it.',
     rows: [
       'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
       'F..............................F',
@@ -80,6 +86,7 @@ export const LEVELS: readonly LevelDefinition[] = [
   },
   {
     name: 'The Kitchen',
+    line: 'Someone kept the salt line standing, and nobody came back for it.',
     rows: [
       'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
       'F..............................F',
@@ -103,6 +110,7 @@ export const LEVELS: readonly LevelDefinition[] = [
   },
   {
     name: 'The Cellar',
+    line: 'It was never this tall, and never this quiet.',
     rows: [
       'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
       'F..............................F',
@@ -126,6 +134,7 @@ export const LEVELS: readonly LevelDefinition[] = [
   },
   {
     name: 'The Scaffold',
+    line: 'Someone was building upwards when the house stopped.',
     rows: [
       'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
       'F..............................F',

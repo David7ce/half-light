@@ -27,7 +27,9 @@ You are one person with two states. Press Shift and you cross over:
   burns them.
 
 Every room is built so that neither state gets through alone. Four rooms, one
-rule, and a door that only opens for the living, with every echo in hand.
+rule, and a door that only opens for the living, with every echo in hand. Each
+room leaves one line of the house's memory on the card before it: the echoes are
+what it remembers of the people who lived there, and it wants them back.
 
 The game is short on purpose: one mechanic, learned in the first room and asked
 for by the last.

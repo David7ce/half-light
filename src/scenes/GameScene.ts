@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLS, ROWS, TILE, centre, parseLevel, type TileKind } from '../level';
+import { CLOSING_LINE, COLS, ROWS, TILE, centre, parseLevel, type TileKind } from '../level';
 import { LEVELS } from '../level';
 import { consumeJump, consumeShift, touch } from '../touch';
 import { playSfx, setAudioMode, startAudio, toggleMute } from '../audio';
@@ -81,6 +81,10 @@ export class GameScene extends Phaser.Scene {
   private echoes: { zone: Phaser.GameObjects.Rectangle; orb: Phaser.GameObjects.Arc }[] = [];
   private door!: Phaser.GameObjects.Rectangle;
   private doorInner!: Phaser.GameObjects.Rectangle;
+  private doorFrame!: Phaser.GameObjects.Rectangle;
+  private doorGlow!: Phaser.GameObjects.Rectangle;
+  private vignetteAlive!: Phaser.GameObjects.Image;
+  private vignetteGhost!: Phaser.GameObjects.Image;
   private hud!: Phaser.GameObjects.Text;
   private spawn = new Phaser.Math.Vector2();
   private wallCollider!: Phaser.Physics.Arcade.Collider;
@@ -132,6 +136,7 @@ export class GameScene extends Phaser.Scene {
     this.buildTiles(level.tiles);
     this.buildPieces(level);
     this.buildPlayer();
+    this.buildVignette();
     this.buildColliders();
     this.buildInput();
     this.buildHud();
@@ -197,6 +202,13 @@ export class GameScene extends Phaser.Scene {
     this.doorInner = this.add.rectangle(doorPos.x, doorPos.y, 12, 30, 0x000000, 0.55);
     this.door.setData('kind', 'door');
     this.physics.add.existing(this.door, true);
+
+    // The frame is what tells you the room is done: it stays a dull outline
+    // while echoes are missing and breathes once every one of them is home.
+    this.doorGlow = this.add.rectangle(doorPos.x, doorPos.y, 46, 68).setDepth(1);
+    this.doorGlow.setStrokeStyle(8, 0xffffff, 0);
+    this.doorFrame = this.add.rectangle(doorPos.x, doorPos.y, 34, 54).setDepth(1);
+    this.doorFrame.setStrokeStyle(2, 0xffffff, 0.5);
 
     for (const echo of level.echoes) {
       const pos = centre(echo);
@@ -280,6 +292,39 @@ export class GameScene extends Phaser.Scene {
     this.hud.setAlpha(0.85);
   }
 
+  /**
+   * A soft border, one per state, so the two worlds differ in more than palette.
+   * Painted as a radial gradient into a canvas texture at runtime: an image file
+   * would be one more thing to license, and stacking strokes gives a hard frame
+   * instead of a falloff.
+   */
+  private buildVignette(): void {
+    const make = (key: string, colour: string, edgeAlpha: number): Phaser.GameObjects.Image => {
+      if (this.textures.exists(key)) this.textures.remove(key);
+      const texture = this.textures.createCanvas(key, WORLD_W, WORLD_H)!;
+      const context = texture.getContext();
+      const centreX = WORLD_W / 2;
+      const centreY = WORLD_H / 2;
+      const gradient = context.createRadialGradient(
+        centreX,
+        centreY,
+        WORLD_H * 0.34,
+        centreX,
+        centreY,
+        WORLD_W * 0.62
+      );
+      gradient.addColorStop(0, `rgba(${colour}, 0)`);
+      gradient.addColorStop(0.55, `rgba(${colour}, ${edgeAlpha * 0.22})`);
+      gradient.addColorStop(1, `rgba(${colour}, ${edgeAlpha})`);
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, WORLD_W, WORLD_H);
+      texture.refresh();
+      return this.add.image(0, 0, key).setOrigin(0, 0).setDepth(8).setAlpha(0);
+    };
+    this.vignetteAlive = make('vignette-alive', '18, 11, 4', 0.6);
+    this.vignetteGhost = make('vignette-ghost', '1, 6, 14', 0.66);
+  }
+
   private applyPalette(): void {
     const palette = PALETTE[this.mode];
     this.cameras.main.setBackgroundColor(palette.bg);
@@ -305,8 +350,13 @@ export class GameScene extends Phaser.Scene {
 
     this.player.setFillStyle(palette.player, ghost ? 0.78 : 1);
     for (const echo of this.echoes) echo.orb.setFillStyle(palette.echo);
-    this.door.setFillStyle(this.echoes.length === 0 ? palette.doorOpen : palette.door);
+    const open = this.echoes.length === 0;
+    this.door.setFillStyle(open ? palette.doorOpen : palette.door);
     this.doorInner.setVisible(true);
+    this.doorFrame.setStrokeStyle(2, open ? palette.doorOpen : palette.door, open ? 0.95 : 0.5);
+    if (open) this.doorGlow.setStrokeStyle(8, palette.doorOpen, 0.35);
+    this.vignetteAlive.setAlpha(ghost ? 0 : 1);
+    this.vignetteGhost.setAlpha(ghost ? 1 : 0);
 
     this.body.setAllowGravity(true);
     this.wallCollider.active = !ghost;
@@ -336,6 +386,7 @@ export class GameScene extends Phaser.Scene {
     setAudioMode(next);
     playSfx('shift');
     this.burst(this.player.x, this.player.y, PALETTE[next].player, 8);
+    this.ring(this.player.x, this.player.y, PALETTE[next].player);
     this.cameras.main.flash(110, next === 'ghost' ? 40 : 70, next === 'ghost' ? 90 : 40, next === 'ghost' ? 120 : 20);
     this.updateHud();
   }
@@ -359,6 +410,7 @@ export class GameScene extends Phaser.Scene {
     this.burst(zone.x, zone.y, PALETTE[this.mode].echo, 10);
     if (this.echoes.length === 0) {
       this.tweens.add({ targets: this.door, scaleX: 1.18, scaleY: 1.08, duration: 220, yoyo: true, ease: 'Sine.Out' });
+      this.lightDoor();
     }
     this.updateHud();
   }
@@ -394,26 +446,57 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: this.door, scaleY: 1.7, alpha: 0, duration: 420, ease: 'Cubic.Out' });
     this.burst(this.door.x, this.door.y, PALETTE[this.mode].doorOpen, 14);
 
-    const last = this.levelIndex === LEVELS.length - 1;
-    const title = last ? 'YOU CROSSED OVER' : 'LEVEL CLEARED';
-    const subtitle = last
-      ? 'Press Enter to walk it again from the hall.'
-      : `${this.levelName} is behind you. Press Enter for the next room.`;
+    const next = LEVELS[this.levelIndex + 1];
+    const font = 'ui-monospace, Cascadia Mono, Consolas, monospace';
+    const centreX = this.scale.width / 2;
+    const height = this.scale.height;
+    const title = next ? 'LEVEL CLEARED' : 'YOU CROSSED OVER';
+    const behind = next ? `${this.levelName} is behind you.` : 'The house has all of its echoes.';
+    // One line of the house's memory per room, on the card before the room.
+    const story = next ? next.line : CLOSING_LINE;
+    const promptLine = next
+      ? `Press Enter for ${next.name}.`
+      : 'Press Enter to walk it again from the hall.';
 
     this.add
-      .text(this.scale.width / 2, this.scale.height / 2 - 16, title, {
-        fontFamily: 'ui-monospace, Cascadia Mono, Consolas, monospace',
+      .rectangle(centreX, height * 0.53, 740, 260, 0x0b0d12, 0.96)
+      .setDepth(19)
+      .setStrokeStyle(1, next ? 0x5a5340 : 0x4a7a58, 0.9);
+
+    this.add
+      .text(centreX, height * 0.37, title, {
+        fontFamily: font,
         fontSize: '34px',
-        color: last ? '#b6f0c2' : '#e8e2d6',
+        color: next ? '#e8e2d6' : '#b6f0c2',
         align: 'center',
       })
       .setOrigin(0.5)
       .setDepth(20);
     this.add
-      .text(this.scale.width / 2, this.scale.height / 2 + 28, subtitle, {
-        fontFamily: 'ui-monospace, Cascadia Mono, Consolas, monospace',
+      .text(centreX, height * 0.46, behind, {
+        fontFamily: font,
         fontSize: '15px',
         color: '#9a9384',
+        align: 'center',
+      })
+      .setOrigin(0.5)
+      .setDepth(20);
+    this.add
+      .text(centreX, height * 0.55, story, {
+        fontFamily: font,
+        fontSize: '17px',
+        color: '#b9ae9a',
+        align: 'center',
+        wordWrap: { width: 660 },
+        lineSpacing: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(20);
+    this.add
+      .text(centreX, height * 0.69, promptLine, {
+        fontFamily: font,
+        fontSize: '15px',
+        color: '#9fd8ff',
         align: 'center',
       })
       .setOrigin(0.5)
@@ -477,6 +560,35 @@ export class GameScene extends Phaser.Scene {
         onComplete: () => dot.destroy(),
       });
     }
+  }
+
+  /** An expanding ring on shift: the body changing state leaves a mark. */
+  private ring(x: number, y: number, colour: number): void {
+    const ring = this.add
+      .circle(x, y, 12, colour, 0)
+      .setStrokeStyle(2, colour, 0.9)
+      .setDepth(7);
+    this.tweens.add({
+      targets: ring,
+      scale: 3.2,
+      alpha: 0,
+      duration: 400,
+      ease: 'Cubic.Out',
+      onComplete: () => ring.destroy(),
+    });
+  }
+
+  /** Every echo is home: the door frame starts breathing. */
+  private lightDoor(): void {
+    this.doorGlow.setStrokeStyle(8, PALETTE[this.mode].doorOpen, 0.35);
+    this.tweens.add({
+      targets: this.doorGlow,
+      alpha: { from: 1, to: 0.35 },
+      duration: 620,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+    });
   }
 
   private hudFlash(colour: string, message: string): void {

@@ -88,17 +88,35 @@ Each level was started through the normal flow and read back between steps:
 - The only error before the fix was `favicon.ico` 404; an inline SVG favicon in
   `index.html` removes it. `docs/ITCH.md` said "three rooms" and listed five
   screenshots: corrected to four rooms and six screenshots. README gained `M`.
-- Current artifact: `half-light-0.1.0.zip`, 331 KB, `index.html` at the root.
+- Current artifact: **`half-light-0.1.0.zip`** (331 KB) was the first upload; the
+  polish below ships as `half-light-0.2.0.zip`, same size.
+
+## Polish for 0.2.0 (2026-11-23)
+
+Visual only: the mechanic, the maps and the collision table are untouched, which
+is the rule before the deadline.
+
+- **One line of the house's memory per room**, on the card before it
+  (`LevelDefinition.line`). The echoes are what the house remembers of the people
+  who lived there, and the door wants them back; the last card closes on that.
+- **The card now names the next room** and sits on a panel: over a live room the
+  salt curtain ran straight through the text and it was unreadable.
+- **A vignette per state**, warm for the living and cold for the dead, painted as a
+  radial gradient into a canvas texture at runtime. Stacked strokes were tried
+  first and drew a frame with a hard step, not a falloff.
+- **A ring on shift**, expanding and fading from the body: the state change leaves
+  a mark, and it doubles as a read of where the body was a moment ago.
+- **The door frame is a progress read**: a dull outline while echoes are missing,
+  then it breathes once every one of them is home.
 
 ## Next
 
-1. **Publishing (owner only)**: create the public GitHub repository and push;
-   create the itch.io project, upload `half-light-0.1.0.zip` from `npm run zip`,
-   and paste the draft copy from [`docs/ITCH.md`](../ITCH.md). Submit early —
-   itch allows edits until the deadline. The six screenshots are staged, in order,
-   in `docs/itch-screens/` (01 title … 06 scaffold; 1024×576, canvas only, hint
-   bar hidden, title taken from the production build so the dev key line is
-   absent). That folder is gitignored: they are uploads, not source.
+1. **Publishing (owner only)**: the 0.1.0 build is already up; upload
+   `half-light-0.2.0.zip` from `npm run zip` over it (itch lets you replace the
+   file and keep the page). The six screenshots in `docs/itch-screens/` are the
+   0.2.0 look — reupload them in order (01 title … 06 scaffold; 1024×576, canvas
+   only, hint bar hidden, title taken from the production build so the dev key
+   line is absent). That folder is gitignored: they are uploads, not source.
 2. **Balance the drift** with a real player on a keyboard: ghost 220 and a
    three-quarter-second coast is a guess, and The Scaffold is the room that will
    tell. The number is `GHOST_DRAG` in `GameScene.ts`.

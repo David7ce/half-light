@@ -32,6 +32,12 @@ the living, and only with all the echoes.
 do not brake: they coast, and the only way to stop is to cross back. Quick shifts
 are the skill; Shift is a brake as much as it is a key.
 
+## The house
+
+Four rooms, and each one leaves a line of the house's memory on the card before
+it. The echoes are not keys: they are what the house remembers of the people who
+lived in it, and the door wants them back before it lets the living through.
+
 ## Run it
 
 ```sh
