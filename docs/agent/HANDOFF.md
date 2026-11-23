@@ -95,7 +95,10 @@ Each level was started through the normal flow and read back between steps:
 1. **Publishing (owner only)**: create the public GitHub repository and push;
    create the itch.io project, upload `half-light-0.1.0.zip` from `npm run zip`,
    and paste the draft copy from [`docs/ITCH.md`](../ITCH.md). Submit early —
-   itch allows edits until the deadline.
+   itch allows edits until the deadline. The six screenshots are staged, in order,
+   in `docs/itch-screens/` (01 title … 06 scaffold; 1024×576, canvas only, hint
+   bar hidden, title taken from the production build so the dev key line is
+   absent). That folder is gitignored: they are uploads, not source.
 2. **Balance the drift** with a real player on a keyboard: ghost 220 and a
    three-quarter-second coast is a guess, and The Scaffold is the room that will
    tell. The number is `GHOST_DRAG` in `GameScene.ts`.

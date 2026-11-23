@@ -21,6 +21,12 @@ Newest entries first. Current state is in [`HANDOFF.md`](HANDOFF.md).
 - Re-zipped: `half-light-0.1.0.zip`, 331 KB, `index.html` at the root plus
   `assets/`. Zero console errors after the favicon fix. No `.playwright-mcp` or
   screenshots left behind.
+- **Six itch screenshots staged** in `docs/itch-screens/` (gitignored), captured
+  at 1024×576 from the canvas only, hint bar hidden: title (production build, so
+  no dev key line), Hall living at the wall, Hall dead on the bridge, Kitchen,
+  Cellar mid-leap with the shift burst, Scaffold with the dead on its own
+  geometry. Two attempts: the first had the HTML hint panel over the canvas and
+  the dev line on the title.
 
 ## 2026-11-22 — dead matter and a drift you cannot brake
 
