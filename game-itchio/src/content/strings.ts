@@ -10,7 +10,7 @@ const ES = {
   'title.new': 'NUEVA PARTIDA',
   'title.continue': 'CONTINUAR',
   'title.erase': 'BORRAR PARTIDA',
-  'title.choose': 'ELIGE CUERPO',
+  'title.choose': 'ELIGE CUERPO · CLIC O ← →',
   'title.enter': 'ENTRAR',
   'title.jam': 'Game Off 2026 · tema SHIFT',
   'title.controls':
@@ -21,7 +21,7 @@ const ES = {
   'title.lang': 'IDIOMA',
 
   'hud.chapter': 'CAPÍTULO {n} · {name}',
-  'hud.shards': 'ESQUIRLAS {n}/9',
+  'hud.shards': 'ESQUIRLAS {n}',
   'hud.astral': 'ASTRAL',
   'hud.energy': 'ENERGÍA',
   'hud.hp': 'VIDA',
@@ -31,7 +31,7 @@ const ES = {
   'toast.saved': 'Zona de guardado',
   'toast.energy': '+ energía',
   'toast.health': '+ vida',
-  'toast.shard': 'Esquirla {n}/9',
+  'toast.shard': 'Esquirla {n}',
   'toast.empty': 'Sin energía astral',
   'toast.respawn': 'Vuelves al último guardado',
   'toast.level': '{name}',
@@ -41,11 +41,13 @@ const ES = {
 
   'pause.title': 'PAUSA',
   'pause.resume': 'Continuar',
+  'pause.lang': 'Idioma: {lang}',
   'pause.restart': 'Reiniciar zona',
   'pause.mute': 'Silencio: {state}',
   'pause.quit': 'Volver al título',
   'pause.on': 'sí',
   'pause.off': 'no',
+  'pause.hint': '↑ ↓ elegir · ENTER activar · ESC volver',
 
   'story.chapter': 'CAPÍTULO {n}',
   'story.next': 'CONTINUAR',
@@ -71,7 +73,7 @@ const EN: Record<keyof typeof ES, string> = {
   'title.new': 'NEW GAME',
   'title.continue': 'CONTINUE',
   'title.erase': 'ERASE SAVE',
-  'title.choose': 'CHOOSE A BODY',
+  'title.choose': 'CHOOSE A BODY · CLICK OR ← →',
   'title.enter': 'ENTER',
   'title.jam': 'Game Off 2026 · theme SHIFT',
   'title.controls':
@@ -82,7 +84,7 @@ const EN: Record<keyof typeof ES, string> = {
   'title.lang': 'LANGUAGE',
 
   'hud.chapter': 'CHAPTER {n} · {name}',
-  'hud.shards': 'SHARDS {n}/9',
+  'hud.shards': 'SHARDS {n}',
   'hud.astral': 'ASTRAL',
   'hud.energy': 'ENERGY',
   'hud.hp': 'LIFE',
@@ -92,7 +94,7 @@ const EN: Record<keyof typeof ES, string> = {
   'toast.saved': 'Save point',
   'toast.energy': '+ energy',
   'toast.health': '+ life',
-  'toast.shard': 'Shard {n}/9',
+  'toast.shard': 'Shard {n}',
   'toast.empty': 'Out of astral energy',
   'toast.respawn': 'Back to the last save',
   'toast.level': '{name}',
@@ -102,11 +104,13 @@ const EN: Record<keyof typeof ES, string> = {
 
   'pause.title': 'PAUSED',
   'pause.resume': 'Resume',
+  'pause.lang': 'Language: {lang}',
   'pause.restart': 'Restart room',
   'pause.mute': 'Mute: {state}',
   'pause.quit': 'Back to title',
   'pause.on': 'on',
   'pause.off': 'off',
+  'pause.hint': '↑ ↓ choose · ENTER select · ESC back',
 
   'story.chapter': 'CHAPTER {n}',
   'story.next': 'CONTINUE',

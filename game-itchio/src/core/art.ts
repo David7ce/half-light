@@ -431,6 +431,17 @@ export function makeProps(scene: Phaser.Scene): void {
     ctx.fillRect(0, 0, 64, 64);
   });
 
+  // Life: three of these, always.
+  makeTexture(scene, 'heart', 7, 6, (pen) => {
+    pen.rows(
+      ['.##.##.', '#######', '#######', '.#####.', '..###..', '...#...'],
+      { '#': '#e04a60' }
+    );
+    pen.px(1, 1, '#ff9fae');
+    pen.px(2, 1, '#ff9fae');
+    pen.px(3, 2, '#ffd3da');
+  });
+
   makeRawTexture(scene, 'fog', 256, 128, (ctx) => {
     const g = ctx.createRadialGradient(128, 64, 8, 128, 64, 118);
     g.addColorStop(0, 'rgba(150,190,255,0.55)');

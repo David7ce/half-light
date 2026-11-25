@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ASTRAL, PHYSICS, PLAYER } from '../config';
+import { ASTRAL, DEPTH, PHYSICS, PLAYER } from '../config';
 import type { CharacterDef } from '../types';
 import { characterKey, type Pose } from '../core/art';
 
@@ -39,7 +39,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       .setBlendMode(Phaser.BlendModes.SCREEN)
       .setTint(0x8fe6ff)
       .setAlpha(0)
-      .setScale(1.1);
+      .setScale(1.1)
+      .setDepth(DEPTH.player - 1);
   }
 
   get onGround(): boolean {
@@ -47,7 +48,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /** The scene passes the horizontal intent and the two edges. */
-  move(dt: number, moveX: number, jumpEdge: boolean, jumpHeld: boolean, speedScale: number): boolean {
+  move(
+    dt: number,
+    moveX: number,
+    jumpEdge: boolean,
+    jumpHeld: boolean,
+    speedScale: number,
+    flying: boolean
+  ): boolean {
     const stats = this.def.stats;
     const speed = PHYSICS.runSpeed * stats.speed * speedScale;
     const target = moveX * speed;
@@ -68,6 +76,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (moveX !== 0) this.facing = moveX > 0 ? 1 : -1;
     this.setFlipX(this.facing === -1);
+
+    // Projected: the body floats. Holding jump rises, gravity is soft.
+    if (flying) {
+      this.body.setGravityY(-PHYSICS.gravity * (1 - ASTRAL.flyGravity));
+      if (jumpHeld) this.body.setVelocityY(-ASTRAL.flySpeed);
+      this.coyote = 0;
+      this.buffer = 0;
+      this.jumpHeld = jumpHeld;
+      this.applyPose(dt, moveX !== 0, jumpHeld);
+      return false;
+    }
+    this.body.setGravityY(0);
 
     if (this.onGround) this.coyote = PHYSICS.coyoteMs / 1000;
     else this.coyote = Math.max(0, this.coyote - dt);

@@ -6,6 +6,7 @@ import { music } from '../audio/music';
 import { characterKey } from '../core/art';
 import { loadSave, eraseSave, loadSettings, saveSettings } from '../core/save';
 import { Run } from '../core/run';
+import { gamepad } from '../core/gamepad';
 import { VIEW_H, VIEW_W } from '../config';
 import type { CharacterDef, Lang } from '../types';
 import type { SaveData } from '../types';
@@ -23,6 +24,7 @@ export class TitleScene extends Phaser.Scene {
   private selected = 0;
   private cards: Phaser.GameObjects.Container[] = [];
   private save: SaveData | null = null;
+  private starting = false;
 
   constructor() {
     super('title');
@@ -34,12 +36,13 @@ export class TitleScene extends Phaser.Scene {
     this.selected = Math.min(data.selected ?? 0, CHARACTERS.length - 1);
     this.save = loadSave();
     this.cards = [];
+    this.starting = false;
   }
 
   create(): void {
     audio.start();
     audio.applyMute(loadSettings().mute);
-    music.play('threshold');
+    music.play('menu');
     music.setAstral(false);
     music.setVolume(0.9);
 
@@ -165,8 +168,7 @@ export class TitleScene extends Phaser.Scene {
 
     this.refresh();
 
-    const kb = this.input.keyboard;
-    kb?.on('keydown-LEFT', () => this.step(-1));
+    const kb = this.input.keyboard;    kb?.on('keydown-LEFT', () => this.step(-1));
     kb?.on('keydown-A', () => this.step(-1));
     kb?.on('keydown-RIGHT', () => this.step(1));
     kb?.on('keydown-D', () => this.step(1));
@@ -237,6 +239,7 @@ export class TitleScene extends Phaser.Scene {
     container.on('pointerdown', () => {
       this.selected = index;
       this.refresh();
+      this.begin(false);
     });
     container.on('pointerover', () => {
       this.selected = index;
@@ -268,6 +271,8 @@ export class TitleScene extends Phaser.Scene {
   }
 
   private begin(continueSave: boolean): void {
+    if (this.starting) return;
+    this.starting = true;
     audio.start();
     if (continueSave && this.save) {
       const run = new Run(this.save.character, this.save);
@@ -294,5 +299,13 @@ export class TitleScene extends Phaser.Scene {
     eraseSave();
     this.save = null;
     this.scene.restart({ selected: this.selected });
+  }
+
+  update(): void {
+    gamepad.update();
+    const pressed = gamepad.pressed;
+    if (pressed.left) this.step(-1);
+    if (pressed.right) this.step(1);
+    if (pressed.jump || pressed.astral) this.begin(false);
   }
 }

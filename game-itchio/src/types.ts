@@ -31,7 +31,7 @@ export interface CharacterDef {
   stats: CharacterStats;
 }
 
-export type ThemeId = 'threshold' | 'wheels' | 'tower' | 'finale';
+export type ThemeId = 'menu' | 'threshold' | 'wheels' | 'tower' | 'finale';
 
 /** Every player-facing sentence exists in both languages, side by side. */
 export interface Localized {

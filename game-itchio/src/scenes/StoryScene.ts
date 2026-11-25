@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { CHAPTERS, ENDING } from '../content/chapters';
 import { t, lines } from '../content/strings';
 import { music } from '../audio/music';
-import { eraseSave, loadSettings, writeSave } from '../core/save';
+import { loadSettings, writeSave, eraseSave } from '../core/save';
+import { gamepad } from '../core/gamepad';
 import type { Run } from '../core/run';
 import { VIEW_H, VIEW_W } from '../config';
 import type { Lang } from '../types';
@@ -143,7 +144,7 @@ export class StoryScene extends Phaser.Scene {
       this.allRevealed = true;
     });
 
-    music.play(chapter.theme);
+    music.play(this.kind === 'ending' ? 'finale' : chapter.theme);
     music.setAstral(false);
     music.setVolume(0.8);
 
@@ -178,7 +179,6 @@ export class StoryScene extends Phaser.Scene {
   private continue(): void {
     this.ready = false;
     const run = this.run;
-
     if (this.kind === 'ending') {
       eraseSave();
       this.scene.start('title');
@@ -198,5 +198,12 @@ export class StoryScene extends Phaser.Scene {
     // Chapter intro: the altar at the start of every chapter is free.
     writeSave(run.toSave());
     this.scene.start('game', { run });
+  }
+
+  update(): void {
+    gamepad.update();
+    const pressed = gamepad.pressed;
+    if (pressed.jump || pressed.astral) this.advance();
+    if (pressed.back) this.skip();
   }
 }

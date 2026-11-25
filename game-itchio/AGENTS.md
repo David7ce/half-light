@@ -35,6 +35,12 @@ roadmap of its own.
   literal in an entity.
 - Input is queued on keydown, not polled: a tap shorter than a frame must count.
   Movement is held; jump and astral are edges/held as documented in `input.ts`.
+  Gamepads are polled once per frame in `core/gamepad.ts`, with the same edges.
+- **The astral flies.** Holding jump while projected rises at `ASTRAL.flySpeed`
+  with `ASTRAL.flyGravity`; the material body always falls. A level that needs a
+  flight is a level that must not be reachable on foot.
+- **Depth order is a rule**: material tiles stay behind the body, astral-only
+  geometry is drawn over it (`DEPTH.astralOverlay`).
 - Comments and identifiers in English; player-facing copy in Spanish and English
   in `src/content/strings.ts` and next to the chapters.
 - Commits: one line, imperative, lowercase after the type (`feat: ...`, `fix: ...`).

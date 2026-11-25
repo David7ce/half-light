@@ -10,21 +10,25 @@ const AMBER = '#f2c46b';
 const BAD = '#ff8a8a';
 
 const BAR_X = 24;
-const BAR_Y = 50;
-const BAR_W = 230;
-const BAR_H = 12;
+const BAR_Y = 48;
+const BAR_W = 150;
+const BAR_H = 8;
+const HEART_X = BAR_X + BAR_W + 26;
+const HEART_Y = 45;
+const HEART_STEP = 26;
 
 /** The HUD is drawn in the scene (not DOM) so it scales with the canvas. */
 export class Hud {
   private readonly lang: Lang;
+  private readonly strip: Phaser.GameObjects.Rectangle;
   private readonly chapterText: Phaser.GameObjects.Text;
   private readonly levelText: Phaser.GameObjects.Text;
   private readonly shardText: Phaser.GameObjects.Text;
   private readonly hint: Phaser.GameObjects.Text;
   private readonly toastText: Phaser.GameObjects.Text;
   private readonly energyBar: Phaser.GameObjects.Graphics;
-  private readonly hpBar: Phaser.GameObjects.Graphics;
   private readonly energyLabel: Phaser.GameObjects.Text;
+  private hearts: Phaser.GameObjects.Image[] = [];
 
   private energyRatio = -1;
   private astral = false;
@@ -36,7 +40,7 @@ export class Hud {
   constructor(scene: Phaser.Scene, lang: Lang) {
     this.lang = lang;
 
-    scene.add
+    this.strip = scene.add
       .rectangle(0, 0, VIEW_W, 92, 0x05040c, 0.5)
       .setOrigin(0, 0)
       .setScrollFactor(0)
@@ -64,12 +68,11 @@ export class Hud {
       .setShadow(2, 2, '#000000', 2);
 
     this.energyBar = scene.add.graphics().setScrollFactor(0).setDepth(DEPTH.hud);
-    this.hpBar = scene.add.graphics().setScrollFactor(0).setDepth(DEPTH.hud);
 
     this.energyLabel = scene.add
       .text(BAR_X, BAR_Y + BAR_H + 4, '', {
         fontFamily: 'monospace',
-        fontSize: '11px',
+        fontSize: '10px',
         color: CYAN,
       })
       .setScrollFactor(0)
@@ -126,7 +129,26 @@ export class Hud {
     if (hp === this.hp && max === this.maxHp) return;
     this.hp = hp;
     this.maxHp = max;
-    this.drawHp();
+
+    if (this.hearts.length !== max) {
+      for (const heart of this.hearts) heart.destroy();
+      this.hearts = [];
+      for (let i = 0; i < max; i += 1) {
+        this.hearts.push(
+          this.strip.scene.add
+            .image(HEART_X + i * HEART_STEP, HEART_Y, 'heart')
+            .setOrigin(0, 0)
+            .setScale(1.7)
+            .setScrollFactor(0)
+            .setDepth(DEPTH.hud)
+        );
+      }
+    }
+    this.hearts.forEach((heart, index) => {
+      const full = index < hp;
+      heart.setAlpha(full ? 1 : 0.28);
+      heart.setTint(full ? 0xffffff : 0x5a4a5e);
+    });
   }
 
   setEnergy(ratio: number, astral: boolean, locked: boolean): void {
@@ -159,7 +181,7 @@ export class Hud {
     g.fillRect(BAR_X, BAR_Y, fill, BAR_H);
     if (this.astral) {
       g.fillStyle(0xd8fbff, 0.35);
-      g.fillRect(BAR_X, BAR_Y, fill, 4);
+      g.fillRect(BAR_X, BAR_Y, fill, 3);
     }
     g.lineStyle(1, 0x081020, 0.7);
     for (let i = 1; i < 4; i += 1) {
@@ -175,25 +197,6 @@ export class Hud {
             : t(this.lang, 'hud.energy')
       )
       .setColor(this.low ? BAD : this.astral ? CYAN : '#7f93b8');
-  }
-
-  private drawHp(): void {
-    const g = this.hpBar;
-    const max = Math.max(1, this.maxHp);
-    const x = BAR_X + BAR_W + 26;
-    const y = BAR_Y;
-    g.clear();
-    for (let i = 0; i < max; i += 1) {
-      const filled = i < this.hp;
-      g.fillStyle(filled ? 0xd95a6a : 0x2a2333, filled ? 1 : 0.85);
-      g.fillRect(x + i * 15, y, 11, 11);
-      g.lineStyle(1, 0x0a0812, 1);
-      g.strokeRect(x + i * 15, y, 11, 11);
-      if (filled) {
-        g.fillStyle(0xffb0b8, 0.7);
-        g.fillRect(x + i * 15 + 2, y + 2, 3, 2);
-      }
-    }
   }
 
   setHint(visible: boolean, projected: boolean): void {
@@ -216,13 +219,15 @@ export class Hud {
   }
 
   destroy(): void {
+    this.strip.destroy();
     this.chapterText.destroy();
     this.levelText.destroy();
     this.energyBar.destroy();
-    this.hpBar.destroy();
     this.energyLabel.destroy();
     this.shardText.destroy();
     this.hint.destroy();
     this.toastText.destroy();
+    for (const heart of this.hearts) heart.destroy();
+    this.hearts = [];
   }
 }

@@ -45,6 +45,10 @@ export const ASTRAL = {
   /** Potion sizes. */
   potionEnergy: 45,
   potionHealth: 1,
+  /** Flight: holding jump while projected rises at flySpeed. */
+  flySpeed: 215,
+  /** Fraction of gravity that still applies while projected (0 = none). */
+  flyGravity: 0.35,
 } as const;
 
 export const PLAYER = {
@@ -68,6 +72,8 @@ export const DEPTH = {
   platforms: 12,
   actors: 20,
   player: 25,
+  /** Astral-only geometry is drawn over the body, as if it were a veil. */
+  astralOverlay: 34,
   fx: 30,
   fog: 40,
   hud: 100,

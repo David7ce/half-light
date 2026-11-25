@@ -19,6 +19,19 @@ interface Theme {
 }
 
 const THEMES: Record<ThemeId, Theme> = {
+  menu: {
+    bpm: 54,
+    chords: [
+      [57, 60, 64, 67],
+      [53, 57, 60, 65],
+      [48, 52, 55, 60],
+      [55, 59, 62, 67],
+    ],
+    melody: [0, 0, 0, 0, 76, 0, 0, 0, 0, 0, 72, 0, 0, 0, 0, 0],
+    hat: 0.12,
+    arp: 0.35,
+    lead: 0.75,
+  },
   threshold: {
     bpm: 62,
     chords: [

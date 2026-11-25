@@ -33,8 +33,8 @@ export const CHARACTERS: readonly CharacterDef[] = [
       en: 'The tightrope walker',
     },
     blurb: {
-      es: 'Ligera y rápida. Dos golpes, mucha altura.',
-      en: 'Light and quick. Two hits, plenty of height.',
+      es: 'Ligera y rápida. Tres golpes, mucha altura.',
+      en: 'Light and quick. Three hits, plenty of height.',
     },
     palette: {
       skin: '#c98d63',
@@ -46,15 +46,15 @@ export const CHARACTERS: readonly CharacterDef[] = [
       trim: '#f2d8a0',
       eye: '#141020',
     },
-    stats: { speed: 1.12, jump: 1.06, maxHp: 2, maxEnergy: 100, drain: 1.15, regen: 1.05 },
+    stats: { speed: 1.12, jump: 1.06, maxHp: 3, maxEnergy: 100, drain: 1.15, regen: 1.05 },
   },
   {
     id: 'vero',
     name: 'Vero',
     title: { es: 'La ancla', en: 'The anchor' },
     blurb: {
-      es: 'Lenta y pesada. Cuatro golpes y la proyección le cuesta menos.',
-      en: 'Slow and heavy. Four hits, and projecting costs less.',
+      es: 'Lenta y pesada. La proyección le cuesta menos y la barra dura más.',
+      en: 'Slow and heavy. Projecting costs less and the bar lasts longer.',
     },
     palette: {
       skin: '#8f6247',
@@ -66,7 +66,7 @@ export const CHARACTERS: readonly CharacterDef[] = [
       trim: '#c9a15c',
       eye: '#f2e6c8',
     },
-    stats: { speed: 0.92, jump: 1, maxHp: 4, maxEnergy: 150, drain: 0.8, regen: 0.85 },
+    stats: { speed: 0.92, jump: 1, maxHp: 3, maxEnergy: 150, drain: 0.8, regen: 0.85 },
   },
 ];
 

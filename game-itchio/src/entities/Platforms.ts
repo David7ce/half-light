@@ -36,8 +36,10 @@ export class Carried {
     const platform = this.image.body as Phaser.Physics.Arcade.Body;
     const feet = body.bottom;
     const top = platform.top;
-    const overlapX = body.right > platform.left + 2 && body.left < platform.right - 2;
-    return overlapX && feet >= top - 8 && feet <= top + 14;
+    const overlap = Math.min(body.right, platform.right) - Math.max(body.left, platform.left);
+    // Feet on the surface, and the body mostly over the pad: a shoulder touching
+    // the edge is not a floor.
+    return overlap > 8 && feet >= top - 2 && feet <= top + 5;
   }
 }
 

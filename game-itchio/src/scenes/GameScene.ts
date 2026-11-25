@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { ASTRAL, DEPTH, TILE, VIEW_H, VIEW_W } from '../config';
 import { lines, t } from '../content/strings';
+import { totalShards } from '../content/chapters';
 import { parseLevel, type ParsedLevel, type TileKind } from '../content/level';
 import { Emitter, type Bus, type GameEvents } from '../core/events';
 import { Input } from '../core/input';
+import { gamepad } from '../core/gamepad';
 import { loadSettings, saveSettings, writeSave } from '../core/save';
 import type { Run } from '../core/run';
 import { audio } from '../audio/engine';
@@ -74,7 +76,10 @@ export class GameScene extends Phaser.Scene {
   private motes!: Phaser.GameObjects.Particles.ParticleEmitter;
   private astralVeil!: Phaser.GameObjects.Rectangle;
   private pausePanel: Phaser.GameObjects.Container | null = null;
-  private pauseLabel: Phaser.GameObjects.Text | null = null;
+  private pauseItems: Phaser.GameObjects.Text[] = [];
+  private pauseLabels: string[] = [];
+  private pauseActions: Array<() => void> = [];
+  private pauseIndex = 0;
 
   private invuln = 0;
   private wasOnGround = true;
@@ -109,6 +114,11 @@ export class GameScene extends Phaser.Scene {
     this.wisps = [];
     this.pickups = [];
     this.allies = [];
+    this.pausePanel = null;
+    this.pauseItems = [];
+    this.pauseLabels = [];
+    this.pauseActions = [];
+    this.pauseIndex = 0;
 
     this.bus = new Emitter<GameEvents>();
     this.vitals = new Vitals(this.run.character.stats, this.run.hp, this.run.energy);
@@ -190,7 +200,7 @@ export class GameScene extends Phaser.Scene {
         case 'astral': {
           const image = this.slabGroup.create(cx, tile.ty * TILE + 4, 'tile-astral') as
             Phaser.Physics.Arcade.Image;
-          image.setDepth(DEPTH.astralGlow).setAlpha(0.16);
+          image.setDepth(DEPTH.astralOverlay).setAlpha(0.16);
           this.slabTiles.push(image);
           break;
         }
@@ -460,7 +470,10 @@ export class GameScene extends Phaser.Scene {
     });
     this.bus.on('shard:taken', ({ total }) => {
       this.hud.setShards(total);
-      this.hud.toast(t(this.lang, 'toast.shard', { n: `${total}/9` }), 'good');
+      this.hud.toast(
+        t(this.lang, 'toast.shard', { n: `${total}/${totalShards()}` }),
+        'good'
+      );
     });
     this.bus.on('checkpoint:saved', () => {
       this.hud.toast(t(this.lang, 'toast.saved'), 'good');
@@ -474,6 +487,8 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += dt;
+    gamepad.update();
+    this.keys.poll(gamepad.state);
     this.hud.update(dt);
 
     if (this.paused) {
@@ -517,13 +532,23 @@ export class GameScene extends Phaser.Scene {
       this.keys.moveX,
       jump,
       this.keys.jumpHeld,
-      this.astral.speedScale
+      this.astral.speedScale,
+      this.astral.active
     );
     if (jumped) audio.sfx('jump');
     if (!this.wasOnGround && this.player.onGround) audio.sfx('land');
     this.wasOnGround = this.player.onGround;
 
     this.updatePlatforms(dt);
+
+    // The world has a ceiling and walls of its own: flight must not leave the map.
+    const body = this.player.body;
+    if (body.top < 0) {
+      body.position.y = 0;
+      if (body.velocity.y < 0) this.player.setVelocityY(0);
+    }
+    if (body.left < 0) body.position.x = 0;
+    if (body.right > this.worldW) body.position.x = this.worldW - body.width;
 
     for (const walker of this.walkers) {
       walker.update((x, y) => this.solidAt(x, y));
@@ -830,82 +855,145 @@ export class GameScene extends Phaser.Scene {
   }
 
   // -------------------------------------------------------------------------
-  // Pause
+  // Pause and settings
   // -------------------------------------------------------------------------
 
   private toggleMute(): void {
     const muted = audio.toggleMute();
     saveSettings({ ...loadSettings(), mute: muted });
-    if (this.pauseLabel) this.pauseLabel.setText(this.pauseLines().mute);
+    if (this.paused) this.renderPause();
   }
 
-  private pauseLines(): { title: string; resume: string; restart: string; quit: string; mute: string } {
-    return {
-      title: t(this.lang, 'pause.title'),
-      resume: t(this.lang, 'pause.resume'),
-      restart: t(this.lang, 'pause.restart'),
-      quit: t(this.lang, 'pause.quit'),
-      mute: t(this.lang, 'pause.mute', {
-        state: audio.isMuted ? t(this.lang, 'pause.on') : t(this.lang, 'pause.off'),
+  private toggleLanguage(): void {
+    this.lang = this.lang === 'es' ? 'en' : 'es';
+    saveSettings({ ...loadSettings(), language: this.lang });
+    this.rebuildUi();
+    if (this.paused) this.renderPause();
+  }
+
+  /** Rebuilds the HUD and the dialogue with the current language. */
+  private rebuildUi(): void {
+    const ratio = this.vitals.ratio;
+    this.hud.destroy();
+    this.dialogue.destroy();
+    this.hud = new Hud(this, this.lang);
+    this.dialogue = new Dialogue(this, this.lang);
+    this.hud.setChapter(
+      t(this.lang, 'hud.chapter', {
+        n: `${this.run.chapterIndex + 1}`,
+        name: this.run.chapter.name[this.lang],
       }),
-    };
+      this.run.level.name[this.lang]
+    );
+    this.hud.setShards(this.run.shards.size);
+    this.hud.setHp(this.vitals.hp, this.vitals.maxHp);
+    this.hud.setEnergy(ratio, this.astral.active, this.astral.locked);
+    this.hud.setHint(!this.astral.active, this.astral.active);
+  }
+
+  private pauseEntries(): Array<{ label: string; run: () => void }> {
+    return [
+      { label: t(this.lang, 'pause.resume'), run: () => this.closePause() },
+      { label: t(this.lang, 'pause.lang', { lang: this.lang.toUpperCase() }), run: () => this.toggleLanguage() },
+      {
+        label: t(this.lang, 'pause.mute', {
+          state: audio.isMuted ? t(this.lang, 'pause.on') : t(this.lang, 'pause.off'),
+        }),
+        run: () => this.toggleMute(),
+      },
+      {
+        label: t(this.lang, 'pause.restart'),
+        run: () => {
+          this.closePause();
+          this.restartLevel(false);
+        },
+      },
+      {
+        label: t(this.lang, 'pause.quit'),
+        run: () => {
+          this.closePause();
+          this.scene.start('title');
+        },
+      },
+    ];
   }
 
   private openPause(): void {
     this.paused = true;
     this.physics.pause();
-    const copy = this.pauseLines();
+    this.keys.flush();
+    this.pauseIndex = 0;
+    this.renderPause();
+  }
+
+  private renderPause(): void {
+    this.pausePanel?.destroy(true);
+    this.pauseItems = [];
+    this.pauseLabels = [];
+    this.pauseActions = [];
+
     const panel = this.add.graphics();
-    panel.fillStyle(0x05040c, 0.86);
+    panel.fillStyle(0x05040c, 0.88);
     panel.fillRect(0, 0, VIEW_W, VIEW_H);
 
     const title = this.add
-      .text(VIEW_W / 2, 180, copy.title, {
+      .text(VIEW_W / 2, 150, t(this.lang, 'pause.title'), {
         fontFamily: 'monospace',
-        fontSize: '40px',
+        fontSize: '38px',
         color: '#f2e8d5',
       })
       .setOrigin(0.5)
       .setLetterSpacing(10);
 
-    const resume = this.add
-      .text(VIEW_W / 2, 270, `ESC · ${copy.resume}`, {
-        fontFamily: 'monospace',
-        fontSize: '19px',
-        color: '#8fe6ff',
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    resume.on('pointerdown', () => this.closePause());
+    const entries = this.pauseEntries();
+    const objects: Phaser.GameObjects.GameObject[] = [panel, title];
 
-    const restart = this.add
-      .text(VIEW_W / 2, 312, `R · ${copy.restart}`, {
+    entries.forEach((entry, index) => {
+      const text = this.add
+        .text(VIEW_W / 2, 238 + index * 46, '', {
+          fontFamily: 'monospace',
+          fontSize: '20px',
+          color: '#d9d2c4',
+        })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true });
+      text.on('pointerover', () => {
+        this.pauseIndex = index;
+        this.refreshPause();
+      });
+      text.on('pointerdown', () => {
+        this.pauseIndex = index;
+        entry.run();
+      });
+      objects.push(text);
+      this.pauseItems.push(text);
+      this.pauseLabels.push(entry.label);
+      this.pauseActions.push(entry.run);
+    });
+
+    const hint = this.add
+      .text(VIEW_W / 2, VIEW_H - 60, t(this.lang, 'pause.hint'), {
         fontFamily: 'monospace',
-        fontSize: '17px',
-        color: '#d9d2c4',
+        fontSize: '13px',
+        color: '#7f93b8',
       })
       .setOrigin(0.5);
-
-    const quit = this.add
-      .text(VIEW_W / 2, 352, `T · ${copy.quit}`, {
-        fontFamily: 'monospace',
-        fontSize: '17px',
-        color: '#d9d2c4',
-      })
-      .setOrigin(0.5);
-
-    this.pauseLabel = this.add
-      .text(VIEW_W / 2, 392, `M · ${copy.mute}`, {
-        fontFamily: 'monospace',
-        fontSize: '16px',
-        color: '#98a6c4',
-      })
-      .setOrigin(0.5);
+    objects.push(hint);
 
     this.pausePanel = this.add
-      .container(0, 0, [panel, title, resume, restart, quit, this.pauseLabel])
+      .container(0, 0, objects)
       .setScrollFactor(0)
       .setDepth(DEPTH.hud + 20);
+    this.refreshPause();
+  }
+
+  private refreshPause(): void {
+    this.pauseItems.forEach((text, index) => {
+      const selected = index === this.pauseIndex;
+      text
+        .setText(`${selected ? '› ' : '  '}${this.pauseLabels[index] ?? ''}`)
+        .setColor(selected ? '#8fe6ff' : '#d9d2c4');
+    });
   }
 
   private closePause(): void {
@@ -913,24 +1001,27 @@ export class GameScene extends Phaser.Scene {
     this.physics.resume();
     this.pausePanel?.destroy(true);
     this.pausePanel = null;
-    this.pauseLabel = null;
+    this.pauseItems = [];
+    this.pauseLabels = [];
+    this.pauseActions = [];
     this.keys.flush();
   }
 
   private updatePause(): void {
-    if (this.keys.consume('pause')) {
+    if (this.keys.consume('pause') || this.keys.consume('back')) {
       this.closePause();
       return;
     }
     if (this.keys.consume('mute')) this.toggleMute();
-    if (this.keys.consume('restart')) {
-      this.closePause();
-      this.restartLevel(false);
-      return;
+    const up = this.keys.consume('navUp');
+    const down = this.keys.consume('navDown');
+    if (up || down) {
+      const total = this.pauseActions.length;
+      this.pauseIndex = (this.pauseIndex + (down ? 1 : -1) + total) % total;
+      this.refreshPause();
     }
-    if (this.keys.consume('quit')) {
-      this.closePause();
-      this.scene.start('title');
+    if (this.keys.consume('navConfirm') || this.keys.consume('jump')) {
+      this.pauseActions[this.pauseIndex]?.();
     }
   }
 }
