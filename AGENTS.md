@@ -1,9 +1,9 @@
 # Agent notes for Half-Light
 
 Game Off 2026 entry (theme SHIFT). Phaser 3 + TypeScript + Vite, no binary
-assets. Current state and the exact next step live in
-[docs/agent/HANDOFF.md](docs/agent/HANDOFF.md); history goes to
-[docs/agent/JOURNAL.md](docs/agent/JOURNAL.md), newest first.
+assets. Current state and the exact next step live in the AgenticHub central
+roadmap (`AgenticHub/projects/working/`); the repo's `docs/agent/` files are
+archive.
 
 ## Commands
 
