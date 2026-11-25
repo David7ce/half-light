@@ -232,8 +232,11 @@ export class TitleScene extends Phaser.Scene {
 
     const container = this.add.container(x, CARD_Y, [panel, portrait, name, role, blurb]);
     container.setSize(CARD_W, CARD_H);
+    // Phaser normalises the pointer by the display origin (half the container
+    // size) before testing the shape, so the rectangle is given from the
+    // container's top-left corner, not from its centre.
     container.setInteractive(
-      new Phaser.Geom.Rectangle(-CARD_W / 2, -CARD_H / 2 + 6, CARD_W, CARD_H),
+      new Phaser.Geom.Rectangle(0, 6, CARD_W, CARD_H),
       Phaser.Geom.Rectangle.Contains
     );
     container.on('pointerdown', () => {

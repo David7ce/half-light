@@ -46,6 +46,8 @@ export class Input {
   private gpMove = 0;
   private gpJump = false;
   private gpAstral = false;
+  /** The pad state the edges are compared against; seeded on the first read. */
+  private gpSeeded = false;
   private readonly gpPrev: PadButtons = {
     jump: false,
     astral: false,
@@ -124,6 +126,15 @@ export class Input {
     this.gpMove = (pad.right ? 1 : 0) - (pad.left ? 1 : 0);
     this.gpJump = pad.jump;
     this.gpAstral = pad.astral;
+
+    // A fresh Input starts from whatever the pad is already doing: a button
+    // held while the scene changed must not read as a new press and fire the
+    // first action of the level (a jump, a menu entry) on its own.
+    if (!this.gpSeeded) {
+      this.gpSeeded = true;
+      Object.assign(this.gpPrev, pad);
+      return;
+    }
 
     const edge = (now: boolean, was: boolean, action: Action) => {
       if (now && !was) this.edges.add(action);

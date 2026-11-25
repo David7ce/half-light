@@ -27,6 +27,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.def = def;
     scene.add.existing(this);
     scene.physics.add.existing(this);
+    // Everything else in the room sets a depth; without one the body stays at 0
+    // and gets buried under the tiles it is supposed to stand in front of.
+    this.setDepth(DEPTH.player);
 
     this.setOrigin(0.5, 1);
     this.body.setSize(PLAYER.width, PLAYER.height);

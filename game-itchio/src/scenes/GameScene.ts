@@ -615,21 +615,31 @@ export class GameScene extends Phaser.Scene {
     );
     if (beneath !== 'ground' && beneath !== 'platform') return false;
 
+    return !this.embeddedInWall();
+  }
+
+  /** Is any part of the body inside a wall cell? */
+  private embeddedInWall(): boolean {
+    const body = this.player.body;
     const x0 = Math.floor(body.left / TILE);
     const x1 = Math.floor((body.right - 1) / TILE);
     const y0 = Math.floor(body.top / TILE);
     const y1 = Math.floor((body.bottom - 1) / TILE);
     for (let y = y0; y <= y1; y += 1) {
       for (let x = x0; x <= x1; x += 1) {
-        if (this.wallCells.has(`${x},${y}`)) return false;
+        if (this.wallCells.has(`${x},${y}`)) return true;
       }
     }
-    return true;
+    return false;
   }
 
   /** If the bar ran out inside a wall, find the nearest free tile. */
   private unstick(): void {
     if (this.canMaterialise()) return;
+    // Running dry in open air is not a trap: only a body wedged in masonry has
+    // to be pulled out, otherwise the rescue would teleport a player who was
+    // simply mid-flight when the energy hit zero.
+    if (!this.embeddedInWall()) return;
     const body = this.player.body;
     const originX = Math.floor(this.player.x / TILE);
     const originY = Math.floor((body.top + body.height / 2) / TILE);
@@ -1013,6 +1023,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (this.keys.consume('mute')) this.toggleMute();
+    // Up, W, Space and the pad's A all queue `jump` next to a nav edge. The
+    // menu acts on the nav edges only; the jump is dropped here so it cannot
+    // be read as a second confirm one frame later and toggle the entry twice
+    // or jump the cursor to "quit".
+    this.keys.consume('jump');
     const up = this.keys.consume('navUp');
     const down = this.keys.consume('navDown');
     if (up || down) {
@@ -1020,7 +1035,7 @@ export class GameScene extends Phaser.Scene {
       this.pauseIndex = (this.pauseIndex + (down ? 1 : -1) + total) % total;
       this.refreshPause();
     }
-    if (this.keys.consume('navConfirm') || this.keys.consume('jump')) {
+    if (this.keys.consume('navConfirm')) {
       this.pauseActions[this.pauseIndex]?.();
     }
   }

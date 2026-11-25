@@ -3,6 +3,27 @@ import { TILE } from '../config';
 import type { MoverSpec, SpinnerSpec } from '../types';
 
 /**
+ * Arcade keeps the body size in source pixels and multiplies it by the Game
+ * Object's scale — `setSize` does it right away, `updateBounds` on every later
+ * scale change — so a size given after `setDisplaySize` would be scaled twice
+ * and the body would end up far larger than the sprite. Dividing by the scale
+ * here keeps the body exactly as big as the sprite it wraps.
+ */
+function fitBody(
+  body: Phaser.Physics.Arcade.Body,
+  image: Phaser.GameObjects.Image,
+  width: number,
+  height: number
+): void {
+  body.updateBounds();
+  body.setSize(width / image.scaleX, height / image.scaleY, false);
+  // Both origins used here (0,0 for the mover, 0.5 for the pads) line the body
+  // up with the sprite when the offset is zero; `Body.reset` ignores the
+  // offset anyway, so a non-zero one would make the two paths disagree.
+  body.setOffset(0, 0);
+}
+
+/**
  * Kinematic platforms. They move with velocity (so Arcade resolves collisions
  * properly) and the scene carries the player with the frame delta, because
  * Arcade does not stick a body to a moving floor by itself.
@@ -59,8 +80,7 @@ export class MovingPlatform extends Carried {
     const body = image.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(false);
     body.setImmovable(true);
-    body.setSize(length, 8);
-    body.setOffset(0, 0);
+    fitBody(body, image, length, 8);
     super(image);
 
     this.origin = { x: image.x, y: image.y };
@@ -122,7 +142,7 @@ export class Spinner {
       const body = image.body as Phaser.Physics.Arcade.Body;
       body.setAllowGravity(false);
       body.setImmovable(true);
-      body.setSize(TILE * 2, 8);
+      fitBody(body, image, TILE * 2, 8);
       const pad = new Carried(image) as Pad;
       pad.angle = (Math.PI * 2 * i) / spec.pads;
       this.pads.push(pad);
@@ -137,7 +157,6 @@ export class Spinner {
       const x = this.cx + Math.cos(angle) * this.radius;
       const y = this.cy + Math.sin(angle) * this.radius;
       pad.image.setPosition(x, y);
-      pad.image.rotation = angle;
       (pad.image.body as Phaser.Physics.Arcade.Body).reset(x, y);
     }
   }

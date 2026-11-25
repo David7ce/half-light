@@ -203,7 +203,10 @@ export class StoryScene extends Phaser.Scene {
   update(): void {
     gamepad.update();
     const pressed = gamepad.pressed;
-    if (pressed.jump || pressed.astral) this.advance();
+    // The B button reports `astral` and `back` at once, so the order decides:
+    // skipping wins and one press does one thing, instead of revealing every
+    // line and leaving the card on the same frame.
     if (pressed.back) this.skip();
+    else if (pressed.jump || pressed.astral) this.advance();
   }
 }
