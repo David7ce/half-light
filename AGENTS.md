@@ -1,4 +1,10 @@
-# Agent notes for Half-Light
+# Agent notes for this repository
+
+Two Game Off 2026 entries live here:
+
+- **Half-Light** at the root (the notes below).
+- **Game Itchio** in [`game-itchio/`](game-itchio/AGENTS.md) — its own package,
+  commands, conventions and README. Read that file before touching it.
 
 Game Off 2026 entry (theme SHIFT). Phaser 3 + TypeScript + Vite, no binary
 assets. Current state and the exact next step live in the AgenticHub central

@@ -1,3 +1,16 @@
+# Game Off 2026 — two entries
+
+This repository holds two separate games for [Game Off 2026](https://itch.io/jam/game-off-2026),
+theme **SHIFT**:
+
+| Game | Folder | What it is |
+| --- | --- | --- |
+| **Half-Light** | repository root (`src/`, `index.html`) | one body, two states: the living cross gaps, the dead cross walls |
+| **Game Itchio** | [`game-itchio/`](game-itchio/README.md) | one body, two worlds: hold Shift to project, slow time and walk through walls |
+
+Each has its own `package.json` and its own itch.io page; they do not share a
+build. Everything below is Half-Light.
+
 # Half-Light
 
 A small puzzle platformer for [Game Off 2026](https://itch.io/jam/game-off-2026),
@@ -67,4 +80,4 @@ Playable prototype: **four levels** (*The Hall*, *The Kitchen*, *The Cellar*, *T
 Scaffold*), a title screen, and a win card that moves to the next room. Each level
 teaches the rules above before it asks for them. All four have been played end to
 end in a browser, from the title screen back to the title. What is still missing is
-in [docs/agent/HANDOFF.md](docs/agent/HANDOFF.md).
+in the AgenticHub central roadmap (`AgenticHub/projects/working/ROADMAP.md`).

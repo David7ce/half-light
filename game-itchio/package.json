@@ -1,0 +1,23 @@
+{
+  "name": "game-itchio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Game Itchio: an astral-projection platformer for Game Off 2026 (theme SHIFT).",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "tsx --test tests/*.test.ts",
+    "zip": "npm run build && node tools/package.mjs"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.10",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0"
+  }
+}

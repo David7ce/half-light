@@ -1,0 +1,95 @@
+:root {
+  color-scheme: dark;
+  --ink: #080a1c;
+  --cream: #f2e8d5;
+  --cyan: #8fe6ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--ink);
+  overflow: hidden;
+  font-family: ui-monospace, 'Cascadia Mono', 'Courier New', monospace;
+  color: var(--cream);
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+}
+
+.touch {
+  position: fixed;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 22px calc(18px + env(safe-area-inset-bottom));
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.touch[hidden] {
+  display: none;
+}
+
+.touch__move,
+.touch__act {
+  display: flex;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.touch button {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 2px solid rgba(143, 230, 255, 0.5);
+  background: rgba(12, 14, 32, 0.6);
+  color: var(--cyan);
+  font: 600 20px/1 ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  touch-action: none;
+  backdrop-filter: blur(1px);
+}
+
+.touch button.is-down {
+  background: rgba(143, 230, 255, 0.28);
+  border-color: var(--cyan);
+}
+
+.touch__act button {
+  width: 88px;
+  height: 88px;
+  border-color: rgba(242, 196, 107, 0.55);
+  color: #f2c46b;
+  font-size: 13px;
+}
+
+.touch__act button.is-down {
+  background: rgba(242, 196, 107, 0.25);
+  border-color: #f2c46b;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .touch {
+    display: none;
+  }
+}
