@@ -32,9 +32,10 @@ The astral bar drains while projected (24/s, characters vary) and refills after 
 short delay. Empty it and projection locks for a moment. Potions refill it; health
 potions add a life; shards are memory fragments that also give a little energy.
 
-You cannot come back to the body inside a wall: the projection holds until there
-is room. If the bar runs out in a wall, the game nudges you to the nearest free
-tile.
+You cannot come back to the body inside a wall, in mid-air, or standing on an
+astral slab: the projection holds until your feet are on something that exists in
+both worlds. If the bar runs out while you are somewhere impossible, the game
+nudges you to the nearest free tile.
 
 ## Chapters
 

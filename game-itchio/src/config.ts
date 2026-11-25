@@ -18,7 +18,7 @@ export const PHYSICS = {
   airAccel: 1500,
   groundDrag: 2600,
   airDrag: 320,
-  jumpSpeed: 640,
+  jumpSpeed: 680,
   jumpCut: 0.42,
   /** Grace after leaving a ledge during which a jump still counts. */
   coyoteMs: 110,

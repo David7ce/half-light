@@ -577,8 +577,19 @@ export class GameScene extends Phaser.Scene {
     return kind === 'ground' || kind === 'wall' || kind === 'platform';
   }
 
+  /**
+   * You can only come back to the body with your feet on something that exists
+   * in the material world. Materialising in mid-air, inside a wall or on an
+   * astral slab would drop the player into the void, so it waits.
+   */
   private canMaterialise(): boolean {
+    if (!this.player.onGround) return false;
     const body = this.player.body;
+    const beneath = this.cells.get(
+      `${Math.floor(this.player.x / TILE)},${Math.floor((body.bottom + 2) / TILE)}`
+    );
+    if (beneath !== 'ground' && beneath !== 'platform') return false;
+
     const x0 = Math.floor(body.left / TILE);
     const x1 = Math.floor((body.right - 1) / TILE);
     const y0 = Math.floor(body.top / TILE);
