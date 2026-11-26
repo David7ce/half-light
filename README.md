@@ -80,4 +80,4 @@ Playable prototype: **four levels** (*The Hall*, *The Kitchen*, *The Cellar*, *T
 Scaffold*), a title screen, and a win card that moves to the next room. Each level
 teaches the rules above before it asks for them. All four have been played end to
 end in a browser, from the title screen back to the title. What is still missing is
-in the AgenticHub central roadmap (`AgenticHub/projects/working/ROADMAP.md`).
+in the AgenticHub central roadmap (`AgenticHub/workspace-panel/working/ROADMAP.md`).

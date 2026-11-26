@@ -8,7 +8,7 @@ Two Game Off 2026 entries live here:
 
 Game Off 2026 entry (theme SHIFT). Phaser 3 + TypeScript + Vite, no binary
 assets. Current state and the exact next step live in the AgenticHub central
-roadmap (`AgenticHub/projects/working/`); the repo's `docs/agent/` files are
+roadmap (`AgenticHub/workspace-panel/working/`); the repo's `docs/agent/` files are
 archive.
 
 ## Commands

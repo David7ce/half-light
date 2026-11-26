@@ -2,7 +2,7 @@
 
 Second Game Off 2026 entry in this repository, next to Half-Light. Phaser 3 +
 TypeScript + Vite, no binary assets. Open work and its state live in the AgenticHub
-central roadmap (`AgenticHub/projects/working/ROADMAP.md`); this repo has no
+central roadmap (`AgenticHub/workspace-panel/working/ROADMAP.md`); this repo has no
 roadmap of its own.
 
 ## Commands
